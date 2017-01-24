@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block head %}
+{{ super() }}
+<!-- 加载figure和widget的scripts -->
+{{ script1|indent(4)|safe }}
+{{ script2|indent(4)|safe }}
+{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1><b>Dashboard Demo</b></h1>
+    <p><i>luyaxin1990@gmail.com</i></p>
+    <br>
+    <p>欢迎访问Dashboard Demo，本站旨在展示使用已掌握的技术快速制作出基于数据库应用的数据分析/可视化平台。</p>
+    <p>受限于服务器硬件规格(AWS EC2 t2.micro实例)，加载数据量较大的图形时可能会耗时较长。</p>
+    <br>
+    <p><i><b>请选择PM2.5数据的年份</b> (来源:http://www.stateair.net/web/post/1/1.html)</i></p>
+    {{ wtf.quick_form(form, form_type='inline', horizontal_columns=('md', 6, 6)) }}
+</div>
+
+<div class="container-fluid">
+    <h4><b>1. {{ selected_year }}年PM2.5日平均浓度变化趋势</b></h4>
+    {{ div1|indent(4)|safe }}
+</div>
+
+<div class="container-fluid">
+    <h4><b>2. {{ selected_year }}年空气质量指数(AQI)等级分布</b></h4>
+    {{ div2|indent(4)|safe }}
+</div>
+
+<div class="container-fluid">
+    <h4><b>3. {{ selected_year }} plot_scatter place_hoder</b></h4>
+</div>
+{% endblock %}
+
