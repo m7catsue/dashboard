@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+import math
 from bokeh.layouts import column, row, layout, gridplot, WidgetBox
-from bokeh.models import ColumnDataSource, CustomJS, Legend, \
+from bokeh.models import ColumnDataSource, CustomJS, DatetimeTickFormatter, FixedTicker, Legend, \
     HoverTool, PanTool, WheelZoomTool, BoxZoomTool, ResetTool
-from bokeh.models.widgets import CheckboxButtonGroup, Dropdown, Select, Panel, Tabs
+from bokeh.models.widgets import CheckboxButtonGroup, Select
 from bokeh.plotting import Figure
 from bokeh.io import curdoc
 
@@ -30,21 +31,28 @@ def make_line_plot(data_source, mode='web'):
     fig = Figure(plot_width=950, plot_height=300, x_axis_type="datetime",                # 时间序列需设置x_axis_type
                  tools=[ResetTool(), PanTool(), WheelZoomTool(), BoxZoomTool(), hover],  # 设置toolbar_location=None不显示toolbar
                  toolbar_location='above', logo=None)                                    # 设置logo=None不显示bokeh logo
-    fig.title.text = 'PM2.5日均浓度变化趋势(ug/m3)'
-    fig.xaxis.axis_label = 'Date'
-    fig.yaxis.axis_label = 'PM2.5 Concentration (ug/m3)'
-
-    fig.line(x='date', y='plt_max_val', source=data_source, line_width=2, line_alpha=0.4, line_color='red',
+    fig.line(x='date', y='plt_max_val', source=data_source, line_width=2, line_alpha=0.5, line_color='#cb181d',
              legend='日最大值')
-    fig.line(x='date', y='plt_mean_val', source=data_source, line_width=2, line_alpha=0.6, line_color='navy',
+    fig.line(x='date', y='plt_mean_val', source=data_source, line_width=2, line_alpha=0.9, line_color='#2171b5',
              legend='日平均值')
-    fig.circle(x='date', y='plt_mean_val', source=data_source, size=3, color="navy", alpha=0.4,
+    fig.circle(x='date', y='plt_mean_val', source=data_source, size=3, color="#2171b5", alpha=0.9,
                legend='日平均值')
-    fig.line(x='date', y='plt_min_val', source=data_source, line_width=2, line_alpha=0.4, line_color='green',
+    fig.line(x='date', y='plt_min_val', source=data_source, line_width=2, line_alpha=0.5, line_color='#238b45',
              legend='日最小值')
 
-    fig.legend.location = 'top_left'                              # default: 'top_right'
-    fig.legend.margin = 5                                         # legend距离figure边缘的距离(default: 10)
+    # [IMP] 设置线图的属性
+    fig.title.text = 'PM2.5日均浓度变化趋势(ug/m3)'
+    fig.xaxis.axis_label = 'Date'
+    fig.xaxis[0].ticker.desired_num_ticks = 12                                           # 坐标轴ticker的频率(desired_num_ticks) [IMP]
+    fig.xaxis.formatter = DatetimeTickFormatter(hours=["%Y-%m-%d"], days=["%Y-%m-%d"],   # 坐标轴datetime的显示格式 [IMP]
+                                                months=["%Y-%m-%d"], years=["%Y-%m-%d"])
+    fig.xaxis.major_label_orientation = math.pi / 12
+    fig.yaxis.axis_label = 'PM2.5 Concentration (ug/m3)'
+    fig.yaxis[0].ticker.desired_num_ticks = 12
+
+    # 设置legend属性(legend在figure内)
+    fig.legend.location = 'top_right'                              # default: 'top_right'
+    fig.legend.margin = 8                                         # legend距离figure边缘的距离(default: 10)
     fig.legend.padding = 3                                        # legend内的pading(default: 10)
     fig.legend.spacing = 1                                        # legend内的行间隔(default: 3)
     fig.legend.glyph_height, fig.legend.glyph_width = 10, 10      # legend内的图例图像的高度/宽度(default: 20)

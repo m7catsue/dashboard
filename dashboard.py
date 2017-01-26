@@ -4,11 +4,11 @@ import sqlite3
 from flask import Flask, g, render_template, url_for
 from flask_bootstrap import Bootstrap
 from bokeh.embed import components
-
 from forms import YearSelectionForm
 from sources import make_source_line, make_source_categorical, make_var_dict_cn, make_var_dict_us_state, \
-    make_var_dict_world, make_cn_data_source, make_us_state_data_source, make_world_data_source
-from plots import make_line_plot, make_categorical, plot_cn_map, plot_us_state_map, plot_world_map
+    make_var_dict_world, make_cn_data_source, make_us_state_data_source, make_world_data_source, make_source_matrix
+from plots import make_line_plot, make_categorical, plot_cn_map, plot_us_state_map, plot_world_map, \
+    make_bar_matrix
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 DATABASE = os.path.join(basedir, 'db_tmp.db')
@@ -44,31 +44,39 @@ def index():
     if form.validate_on_submit():
         source_line = make_source_line(db, base_year=form.year.data)
         source_cat1, source_cat2 = make_source_categorical(db, base_year=form.year.data)
+        source_matrix = make_source_matrix(db, base_year=form.year.data)
 
         line_layout = make_line_plot(source_line, mode='web')
         categorical_layout = make_categorical(source_cat1, source_cat2, mode='web')
+        bar_matrix_layout = make_bar_matrix(source_matrix, mode='web')
 
         script1, div1 = components(line_layout)
         script2, div2 = components(categorical_layout)
+        script3, div3 = components(bar_matrix_layout)
 
         return render_template('index.html',
-                               form=form, selected_year=selected_year,
+                               form=form, year=selected_year,
                                script1=script1, div1=div1,
-                               script2=script2, div2=div2)
+                               script2=script2, div2=div2,
+                               script3=script3, div3=div3)
 
     source_line = make_source_line(db, base_year=form.year.data)
     source_cat1, source_cat2 = make_source_categorical(db, base_year=form.year.data)
+    source_matrix = make_source_matrix(db, base_year=form.year.data)
 
     line_layout = make_line_plot(source_line, mode='web')
     categorical_layout = make_categorical(source_cat1, source_cat2, mode='web')
+    bar_matrix_layout = make_bar_matrix(source_matrix, mode='web')
 
     script1, div1 = components(line_layout)
     script2, div2 = components(categorical_layout)
+    script3, div3 = components(bar_matrix_layout)
 
     return render_template('index.html',
-                           form=form, selected_year=selected_year,
+                           form=form, year=selected_year,
                            script1=script1, div1=div1,
-                           script2=script2, div2=div2)
+                           script2=script2, div2=div2,
+                           script3=script3, div3=div3)
 
 
 @app.route('/heat_maps')
@@ -89,8 +97,8 @@ def heat_maps():
                            script_maps=script_maps, div_maps=div_maps)
 
 
-@app.route('/project_page')
-def project_page():
+@app.route('/stream')
+def stream():
     """单独任务"""
     return 'Not implemented yet.'
 

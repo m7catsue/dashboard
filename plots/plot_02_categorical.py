@@ -60,7 +60,7 @@ def make_categorical(categorical_source, stacked_bar_source, mode='web', show_la
                                        line_color="navy", line_alpha=0.3, line_width=2)
 
     fig1.title.text = '空气质量指数(AQI)等级分布'
-    fig1.xaxis.major_label_orientation = math.pi/8        # 旋转坐标上每个轴刻度的label (π=180°)
+    fig1.xaxis.major_label_orientation = math.pi/8        # 旋转x轴上的刻度标签 (π=180°)
 
     # [IMP] 对柱状图添加类别标签(可选)
     # text_font_style: normal/italic/bold; text_align: left/center/right

@@ -138,7 +138,7 @@ def make_source_categorical(db, base_year=2015):
 
     source = ColumnDataSource(data=data)
 
-    ########################################################################################
+    ##################################
     # 生成堆积柱形图(stacked bar)所需的数据
 
     arrays = [counts_bj_cumsum, counts_cd_cumsum, counts_gz_cumsum,
@@ -162,7 +162,7 @@ def make_source_categorical(db, base_year=2015):
                                                 stack_offset_2=stack_offset_2, stack_offset_3=stack_offset_3,
                                                 stack_offset_4=stack_offset_4, stack_offset_5=stack_offset_5,
                                                 stack_offset_6=stack_offset_6))
-    ##########################################################################################
+    ##################################
 
     return source, stacked_source
 
@@ -206,3 +206,153 @@ def make_var_dict_world():
         country_name = country_obj['properties']['name']
         var_dict_country[country_name] = random.randint(10, 300)
     return var_dict_country
+
+
+def make_source_matrix(db, base_year=2015):
+    """
+    生成make_bar_matrix()函数的DataSource
+    """
+    df = pd.read_sql(base_sql_0 % base_year, con=db)
+    df['date'] = pd.to_datetime(df['date'])
+
+    df['level'] = df['mean_val'].apply(get_aqi_level)
+    df['month'] = df['date'].apply(lambda t: t.month)
+    df = pd.DataFrame(df.groupby(['city', 'month', 'level'])['date'].count()). \
+        reset_index(level=['city', 'month', 'level'])
+    df.rename(columns={'date': 'num_days'}, inplace=True)
+
+    months = list(range(1, 13))
+    levels = ['好', '中等', '对敏感人群不健康', '不健康', '非常不健康', '有毒害']
+
+    bj_level_1 = df[(df['city'] == 'Beijing') & (df['level'] == '好')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    bj_level_2 = df[(df['city'] == 'Beijing') & (df['level'] == '中等')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    bj_level_3 = df[(df['city'] == 'Beijing') & (df['level'] == '对敏感人群不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    bj_level_4 = df[(df['city'] == 'Beijing') & (df['level'] == '不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    bj_level_5 = df[(df['city'] == 'Beijing') & (df['level'] == '非常不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    bj_level_6 = df[(df['city'] == 'Beijing') & (df['level'] == '有毒害')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    cd_level_1 = df[(df['city'] == 'Chengdu') & (df['level'] == '好')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    cd_level_2 = df[(df['city'] == 'Chengdu') & (df['level'] == '中等')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    cd_level_3 = df[(df['city'] == 'Chengdu') & (df['level'] == '对敏感人群不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    cd_level_4 = df[(df['city'] == 'Chengdu') & (df['level'] == '不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    cd_level_5 = df[(df['city'] == 'Chengdu') & (df['level'] == '非常不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    cd_level_6 = df[(df['city'] == 'Chengdu') & (df['level'] == '有毒害')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    gz_level_1 = df[(df['city'] == 'Guangzhou') & (df['level'] == '好')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    gz_level_2 = df[(df['city'] == 'Guangzhou') & (df['level'] == '中等')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    gz_level_3 = df[(df['city'] == 'Guangzhou') & (df['level'] == '对敏感人群不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    gz_level_4 = df[(df['city'] == 'Guangzhou') & (df['level'] == '不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    gz_level_5 = df[(df['city'] == 'Guangzhou') & (df['level'] == '非常不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    gz_level_6 = df[(df['city'] == 'Guangzhou') & (df['level'] == '有毒害')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sh_level_1 = df[(df['city'] == 'Shanghai') & (df['level'] == '好')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sh_level_2 = df[(df['city'] == 'Shanghai') & (df['level'] == '中等')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sh_level_3 = df[(df['city'] == 'Shanghai') & (df['level'] == '对敏感人群不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sh_level_4 = df[(df['city'] == 'Shanghai') & (df['level'] == '不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sh_level_5 = df[(df['city'] == 'Shanghai') & (df['level'] == '非常不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sh_level_6 = df[(df['city'] == 'Shanghai') & (df['level'] == '有毒害')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sy_level_1 = df[(df['city'] == 'Shenyang') & (df['level'] == '好')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sy_level_2 = df[(df['city'] == 'Shenyang') & (df['level'] == '中等')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sy_level_3 = df[(df['city'] == 'Shenyang') & (df['level'] == '对敏感人群不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sy_level_4 = df[(df['city'] == 'Shenyang') & (df['level'] == '不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sy_level_5 = df[(df['city'] == 'Shenyang') & (df['level'] == '非常不健康')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+    sy_level_6 = df[(df['city'] == 'Shenyang') & (df['level'] == '有毒害')][['month', 'num_days']] \
+        .set_index('month')['num_days']
+
+    bj_level_1 = dict(bj_level_1); bj_level_2 = dict(bj_level_2); bj_level_3 = dict(bj_level_3)
+    bj_level_4 = dict(bj_level_4); bj_level_5 = dict(bj_level_5); bj_level_6 = dict(bj_level_6)
+    cd_level_1 = dict(cd_level_1); cd_level_2 = dict(cd_level_2); cd_level_3 = dict(cd_level_3)
+    cd_level_4 = dict(cd_level_4); cd_level_5 = dict(cd_level_5); cd_level_6 = dict(cd_level_6)
+    gz_level_1 = dict(gz_level_1); gz_level_2 = dict(gz_level_2); gz_level_3 = dict(gz_level_3)
+    gz_level_4 = dict(gz_level_4); gz_level_5 = dict(gz_level_5); gz_level_6 = dict(gz_level_6)
+    sh_level_1 = dict(sh_level_1); sh_level_2 = dict(sh_level_2); sh_level_3 = dict(sh_level_3)
+    sh_level_4 = dict(sh_level_4); sh_level_5 = dict(sh_level_5); sh_level_6 = dict(sh_level_6)
+    sy_level_1 = dict(sy_level_1); sy_level_2 = dict(sy_level_2); sy_level_3 = dict(sy_level_3)
+    sy_level_4 = dict(sy_level_4); sy_level_5 = dict(sy_level_5); sy_level_6 = dict(sy_level_6)
+
+    dicts = [bj_level_1, bj_level_2, bj_level_3, bj_level_4, bj_level_5, bj_level_6,
+             cd_level_1, cd_level_2, cd_level_3, cd_level_4, cd_level_5, cd_level_6,
+             gz_level_1, gz_level_2, gz_level_3, gz_level_4, gz_level_5, gz_level_6,
+             sh_level_1, sh_level_2, sh_level_3, sh_level_4, sh_level_5, sh_level_6,
+             sy_level_1, sy_level_2, sy_level_3, sy_level_4, sy_level_5, sy_level_6]
+
+    for month in months:  # GroupBy结果可能出现某一类型缺失的情况:如xxxx年x月北京没有空气质量等级为'好'的情况
+        for dict_data in dicts:
+            if month not in dict_data:
+                dict_data[month] = 0
+
+    bj_level_1 = pd.Series(data=bj_level_1, index=months).values; bj_level_2 = pd.Series(data=bj_level_2, index=months).values
+    bj_level_3 = pd.Series(data=bj_level_3, index=months).values; bj_level_4 = pd.Series(data=bj_level_4, index=months).values
+    bj_level_5 = pd.Series(data=bj_level_5, index=months).values; bj_level_6 = pd.Series(data=bj_level_6, index=months).values
+    cd_level_1 = pd.Series(data=cd_level_1, index=months).values; cd_level_2 = pd.Series(data=cd_level_2, index=months).values
+    cd_level_3 = pd.Series(data=cd_level_3, index=months).values; cd_level_4 = pd.Series(data=cd_level_4, index=months).values
+    cd_level_5 = pd.Series(data=cd_level_5, index=months).values; cd_level_6 = pd.Series(data=cd_level_6, index=months).values
+    gz_level_1 = pd.Series(data=gz_level_1, index=months).values; gz_level_2 = pd.Series(data=gz_level_2, index=months).values
+    gz_level_3 = pd.Series(data=gz_level_3, index=months).values; gz_level_4 = pd.Series(data=gz_level_4, index=months).values
+    gz_level_5 = pd.Series(data=gz_level_5, index=months).values; gz_level_6 = pd.Series(data=gz_level_6, index=months).values
+    sh_level_1 = pd.Series(data=sh_level_1, index=months).values; sh_level_2 = pd.Series(data=sh_level_2, index=months).values
+    sh_level_3 = pd.Series(data=sh_level_3, index=months).values; sh_level_4 = pd.Series(data=sh_level_4, index=months).values
+    sh_level_5 = pd.Series(data=sh_level_5, index=months).values; sh_level_6 = pd.Series(data=sh_level_6, index=months).values
+    sy_level_1 = pd.Series(data=sy_level_1, index=months).values; sy_level_2 = pd.Series(data=sy_level_2, index=months).values
+    sy_level_3 = pd.Series(data=sy_level_3, index=months).values; sy_level_4 = pd.Series(data=sy_level_4, index=months).values
+    sy_level_5 = pd.Series(data=sy_level_5, index=months).values; sy_level_6 = pd.Series(data=sy_level_6, index=months).values
+
+    all_level_1 = bj_level_1 + cd_level_1 + gz_level_1 + sh_level_1 + sy_level_1
+    all_level_2 = bj_level_2 + cd_level_2 + gz_level_2 + sh_level_2 + sy_level_2
+    all_level_3 = bj_level_3 + cd_level_3 + gz_level_3 + sh_level_3 + sy_level_3
+    all_level_4 = bj_level_4 + cd_level_4 + gz_level_4 + sh_level_4 + sy_level_4
+    all_level_5 = bj_level_5 + cd_level_5 + gz_level_5 + sh_level_5 + sy_level_5
+    all_level_6 = bj_level_1 + cd_level_6 + gz_level_6 + sh_level_6 + sy_level_6
+
+    data = dict(months=months,
+                bj_level_1=bj_level_1, bj_level_2=bj_level_2, bj_level_3=bj_level_3,
+                bj_level_4=bj_level_4, bj_level_5=bj_level_5, bj_level_6=bj_level_6,
+                cd_level_1=cd_level_1, cd_level_2=cd_level_2, cd_level_3=cd_level_3,
+                cd_level_4=cd_level_4, cd_level_5=cd_level_5, cd_level_6=cd_level_6,
+                gz_level_1=gz_level_1, gz_level_2=gz_level_2, gz_level_3=gz_level_3,
+                gz_level_4=gz_level_4, gz_level_5=gz_level_5, gz_level_6=gz_level_6,
+                sh_level_1=sh_level_1, sh_level_2=sh_level_2, sh_level_3=sh_level_3,
+                sh_level_4=sh_level_4, sh_level_5=sh_level_5, sh_level_6=sh_level_6,
+                sy_level_1=sy_level_1, sy_level_2=sy_level_2, sy_level_3=sy_level_3,
+                sy_level_4=sy_level_4, sy_level_5=sy_level_5, sy_level_6=sy_level_6,
+                all_level_1=all_level_1, all_level_2=all_level_2, all_level_3=all_level_3,
+                all_level_4=all_level_4, all_level_5=all_level_5, all_level_6=all_level_6,
+
+                fig_1_data=bj_level_2, fig_2_data=cd_level_2, fig_3_data=gz_level_2,  # 作图用数据
+                fig_4_data=sh_level_2, fig_5_data=sy_level_2, fig_6_data=all_level_2,
+                fig_1_lab=['', '', '', '', '', '', '', '', '', '', '', ''],  # 显示标签的数据(默认不显示label,由JS更新)
+                fig_2_lab=['', '', '', '', '', '', '', '', '', '', '', ''],
+                fig_3_lab=['', '', '', '', '', '', '', '', '', '', '', ''],
+                fig_4_lab=['', '', '', '', '', '', '', '', '', '', '', ''],
+                fig_5_lab=['', '', '', '', '', '', '', '', '', '', '', ''],
+                fig_6_lab=['', '', '', '', '', '', '', '', '', '', '', ''])
+
+    source = ColumnDataSource(data=data)
+    return source
+
