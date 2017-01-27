@@ -125,7 +125,6 @@ y_cos = [math.cos(xi) for xi in x]
 y_random = [random.uniform(-1, 1) for i in range(60)]  # random.random()返回[0.0, 1.0)之间的浮点数
 
 
-
 @app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def get_streaming_data():
