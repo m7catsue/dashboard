@@ -1,25 +1,35 @@
 # -*- coding: utf-8 -*-
 import os.path
 import sqlite3
-from flask import Flask, g, render_template, url_for
+import math
+import random
+import numpy as np
+from flask import Flask, g, render_template, jsonify
 from flask_bootstrap import Bootstrap
+
+from bokeh.models import AjaxDataSource
 from bokeh.embed import components
+
 from forms import YearSelectionForm
 from sources import make_source_line, make_source_categorical, make_var_dict_cn, make_var_dict_us_state, \
     make_var_dict_world, make_cn_data_source, make_us_state_data_source, make_world_data_source, make_source_matrix
 from plots import make_line_plot, make_categorical, plot_cn_map, plot_us_state_map, plot_world_map, \
-    make_bar_matrix
+    make_bar_matrix, make_streaming_plots
+from decorators import crossdomain
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 DATABASE = os.path.join(basedir, 'db_tmp.db')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'm7catsue_evallery_indigo1990_secret_key'
+app.config['DEBUG'] = True
 bootstrap = Bootstrap(app)
 
 
 def get_db():
-    """获得数据库连接(db=g._database)"""
+    """
+    获得数据库连接(db=g._database)
+    """
     db = getattr(g, '_database', None)
     if not db:
         db = g._database = sqlite3.connect(DATABASE)
@@ -28,7 +38,9 @@ def get_db():
 
 @app.teardown_appcontext
 def close_db(exception):
-    """teardown应用上下文时,关闭数据库连接"""
+    """
+    teardown应用上下文时,关闭数据库连接
+    """
     db = getattr(g, '_database', None)
     if db:
         db.close()
@@ -36,7 +48,9 @@ def close_db(exception):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    """Dashboard首页的视图函数"""
+    """
+    Dashboard首页视图函数
+    """
     db = get_db()                                   # get database connection
     form = YearSelectionForm()
     selected_year = form.year.data                  # get selected_year(string)
@@ -81,7 +95,9 @@ def index():
 
 @app.route('/heat_maps')
 def heat_maps():
-    """Dashboard热力图页面的视图函数"""
+    """
+    Dashboard Heat Maps页面的视图函数
+    """
     from bokeh.models.widgets import Panel, Tabs
     source_cn = make_cn_data_source(make_var_dict_cn(), num_color_level=7, log_scale=False)
     source_us = make_us_state_data_source(make_var_dict_us_state(), num_color_level=7, log_scale=False)
@@ -90,19 +106,54 @@ def heat_maps():
     tab1 = Panel(child=plot_cn_map(source_cn, mode='web'), title='中国地图')
     tab2 = Panel(child=plot_us_state_map(source_us, mode='web'), title='美国地图')
     tab3 = Panel(child=plot_world_map(source_wd, mode='web'), title='世界地图')
-    tabs = Tabs(tabs=[tab1, tab2, tab3], width=960, height=600, active=0)
+
+    tabs = Tabs(tabs=[tab1, tab2, tab3], width=848, height=600, active=0)
 
     script_maps, div_maps = components(tabs)
     return render_template('maps.html',
                            script_maps=script_maps, div_maps=div_maps)
 
+################################
+#
+# Plotting Streaming Data
+#
+################################
+
+x = list(np.arange(0, 6, 0.1))                         # streaming模拟数据
+y_sin = [math.sin(xi) for xi in x]
+y_cos = [math.cos(xi) for xi in x]
+y_random = [random.uniform(-1, 1) for i in range(60)]  # random.random()返回[0.0, 1.0)之间的浮点数
+
+
+
+@app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
+@crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
+def get_streaming_data():
+    """
+    生成streaming的模拟数据
+    """
+    x.append(x[-1] + 0.1)
+    y_sin.append(math.sin(x[-1]))
+    y_cos.append(math.cos(x[-1]))
+    y_random.append(random.uniform(-1, 1))
+    return jsonify(x=x[-1], y_sin=y_sin[-1], y_cos=y_cos[-1], y_random=y_random[-1])
+
 
 @app.route('/stream')
 def stream():
-    """单独任务"""
-    return 'Not implemented yet.'
+    """
+    对streaming的模拟数据进行实时的数据可视化
+    """
+    ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
+                                 data_url='http://localhost:5000/data',
+                                 polling_interval=200, mode='append', max_size=500)
+    fig_layout = make_streaming_plots(ajax_source, mode='web')
+
+    script, div = components(fig_layout)
+    return render_template('stream.html',
+                           script_stream=script, div_stream=div)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
 

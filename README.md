@@ -1,2 +1,2 @@
 # dashboard
-My personal dashboard project for trying out data visualization
+My dashboard demo for data visualization

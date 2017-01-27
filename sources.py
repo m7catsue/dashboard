@@ -5,7 +5,7 @@ import random
 import math
 import pandas as pd
 from seaborn import color_palette
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, AjaxDataSource
 
 from plots.plot_02_categorical import get_aqi_level
 from plots.plot_04_heatmap import make_cn_data_source, make_us_state_data_source, make_world_data_source

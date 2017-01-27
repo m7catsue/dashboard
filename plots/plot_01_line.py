@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import math
 from bokeh.layouts import column, row, layout, gridplot, WidgetBox
-from bokeh.models import ColumnDataSource, CustomJS, DatetimeTickFormatter, FixedTicker, Legend, \
+from bokeh.models import CustomJS, DatetimeTickFormatter, FixedTicker, Legend, \
     HoverTool, PanTool, WheelZoomTool, BoxZoomTool, ResetTool
 from bokeh.models.widgets import CheckboxButtonGroup, Select
 from bokeh.plotting import Figure
@@ -147,6 +147,7 @@ if __name__ == '__main__':
     import os
     import sqlite3
     import pandas as pd
+    from bokeh.models import ColumnDataSource
     from bokeh.io import output_file, save
 
     basedir = os.path.abspath(os.path.dirname(__file__))             # 本文件所在文件夹的绝对路径

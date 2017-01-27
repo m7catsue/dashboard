@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import math
 from bokeh.layouts import column, row, layout, gridplot, WidgetBox
-from bokeh.models import ColumnDataSource, FactorRange,  FixedTicker, CustomJS, LabelSet
+from bokeh.models import FactorRange,  FixedTicker, CustomJS, LabelSet
 from bokeh.models.widgets import RadioButtonGroup, Toggle
 from bokeh.plotting import Figure
 from bokeh.io import curdoc
@@ -156,6 +156,7 @@ if __name__ == '__main__':
     import os
     import sqlite3
     import pandas as pd
+    from bokeh.models import ColumnDataSource
     from bokeh.io import output_file, save
 
     basedir = os.path.abspath(os.path.dirname(__file__))  # 本文件所在文件夹的绝对路径
