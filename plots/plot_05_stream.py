@@ -6,21 +6,22 @@ from bokeh.io import curdoc
 
 def make_streaming_plots(ajax_data_source, mode='web'):
     """
-    使用AjaxDataSource绘制实时图像
+    使用AjaxDataSource绘制实时图像;
+    在Figure中设置tools=[]以取消图像中默认的'pan'的功能,保证streamming图像不受意外的拖动干扰 [IMP]
     """
     if mode not in ['web', 'local']:
         raise ValueError("Error: 'mode' parameter must be 'web' or 'local'!")
 
     fig1 = Figure(plot_width=360, plot_height=240, title='Streaming模拟数据: 正弦函数',
-                  y_range=(-1.5, 1.5), toolbar_location=None, logo=None)
+                  y_range=(-1.5, 1.5), toolbar_location=None, logo=None, tools=[])
     fig1.line(x='x', y='y_sin', source=ajax_data_source, line_width=2, line_alpha=0.9, color='#2171b5')
 
     fig2 = Figure(plot_width=360, plot_height=240, title='Streaming模拟数据: 余弦函数',
-                  y_range=(-1.5, 1.5), toolbar_location=None, logo=None)
+                  y_range=(-1.5, 1.5), toolbar_location=None, logo=None, tools=[])
     fig2.line(x='x', y='y_cos', source=ajax_data_source, line_width=2, line_alpha=0.9, color='#cb181d')
 
     fig3 = Figure(plot_width=360, plot_height=240, title='Streaming模拟数据: [-1, 1)均匀分布',
-                  y_range=(-2, 2), toolbar_location=None, logo=None)
+                  y_range=(-2, 2), toolbar_location=None, logo=None, tools=[])
     fig3.circle('x', 'y_random', source=ajax_data_source, size=3, color="#2171b5", alpha=0.9)
 
     for fig in [fig1, fig2, fig3]:            # 设置streaming图像的x轴属性(x轴刻度随着streaming数据而增大)
