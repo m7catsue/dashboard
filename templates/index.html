@@ -25,7 +25,11 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{{ url_for('index') }}">Home</a>
+                <!-- 在导航栏中使用glyphicon -->
+                <a class="navbar-brand" href="{{ url_for('index') }}">
+                    <span class="glyphicon glyphicon-home"></span>
+                    Home
+                </a>
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
@@ -52,21 +56,21 @@
     <div class="container">
         <div class="row">
             <div class="col-md-4">
-                <h2>Dashboard</h2>
+                <h2><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Dashboard</h2>
                 <p>基于数据库应用的可交互的数据分析/可视化平台。可用于(1)对日常数据指标的监控和分析(2)呈现单独数据挖掘项目的结论和报告。</p>
                 <p>
                     <a class="btn btn-default" href="{{ url_for('dashboard') }}">前往Dashboard »</a>
                 </p>
             </div>
             <div class="col-md-4">
-                <h2>Heat Maps</h2>
+                <h2><span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span> Heat Maps</h2>
                 <p>基于地理位置信息进行数据可视化。依据地理位置信息对数据进行聚合，以热力图(Heat Maps)的形式更直观地呈现数据的特征。</p>
                 <p>
                     <a class="btn btn-default" href="{{ url_for('heat_maps') }}">前往HeatMaps »</a>
                 </p>
             </div>
             <div class="col-md-4">
-                <h2>Streaming</h2>
+                <h2><span class="glyphicon glyphicon-send" aria-hidden="true"></span> Streaming</h2>
                 <p>对streaming数据进行实时分析和可视化。通过对实时数据进行监控和分析，在最短时间内发现任何可能出现的异常情况。</p>
                 <p>
                     <a class="btn btn-default" href="{{ url_for('stream') }}">前往Streaming »</a>

@@ -27,3 +27,16 @@ div.bk-plot-wrapper {
     padding-right: 10px;
     vertical-align: middle;
 }
+
+.navbar-brand {
+    /*调整导航栏中glyphicon"Home"与导航栏中其他项目的对齐,
+    padding-top: 13px; padding-bottom: 17px;*/
+    float: left;
+    height: 50px;
+    padding-top: 13px;
+    padding-bottom: 17px;
+    padding-left: 15px;
+    padding-right: 15px;
+    font-size: 18px;
+    line-height: 20px;
+}
