@@ -59,8 +59,8 @@ def make_categorical(categorical_source, stacked_bar_source, mode='web', show_la
     renderer.nonselection_glyph = VBar(fill_alpha=0.3, fill_color=None,
                                        line_color="navy", line_alpha=0.3, line_width=2)
 
-    fig1.title.text = '空气质量指数(AQI)等级分布'
-    fig1.xaxis.major_label_orientation = math.pi/8        # 旋转x轴上的刻度标签 (π=180°)
+    fig1.title.text = '北京市空气质量指数(AQI)等级分布'       # 初始显示'北京市';title由CustomJS回调函数动态更新
+    fig1.xaxis.major_label_orientation = math.pi/10        # 旋转x轴上的刻度标签 (π=180°)
 
     # [IMP] 对柱状图添加类别标签(可选)
     # text_font_style: normal/italic/bold; text_align: left/center/right
@@ -94,7 +94,7 @@ def make_categorical(categorical_source, stacked_bar_source, mode='web', show_la
     renderer.nonselection_glyph = AnnularWedge(fill_alpha=0.3, fill_color=None,
                                                line_color="navy", line_alpha=0.3, line_width=2)
 
-    fig2.title.text = '空气质量指数(AQI)等级占比'
+    fig2.title.text = '北京市空气质量指数(AQI)等级占比'               # 初始显示'北京市';title由CustomJS回调函数动态更新
 
     # 更改figure内legend的属性(注意:bokeh未来可能会提供更方便的API)
     fig2.legend.location = 'top_right'                            # default: 'top_right'
@@ -154,15 +154,18 @@ def make_categorical(categorical_source, stacked_bar_source, mode='web', show_la
 
     # 对于DataTable使用CustoomJS回调函数,需明确传入DataTable对象;若仅对souce改变,DataTable不会变化 [IMP]
     # RadioButtonGroup的active是int类型
-    callback = CustomJS(args=dict(source=categorical_source, table=data_table), code="""
+    callback = CustomJS(args=dict(source=categorical_source,
+                                  fig_bar=fig1,
+                                  fig_pie=fig2,
+                                  table=data_table,), code="""
         var data = source.data;
         var city = String(cb_obj.active);
         var mapping = {
-            0: ['counts_bj', 'start_angles_bj', 'end_angles_bj', 'percents_bj_rounded'],
-            1: ['counts_cd', 'start_angles_cd', 'end_angles_cd', 'percents_cd_rounded'],
-            2: ['counts_gz', 'start_angles_gz', 'end_angles_gz', 'percents_gz_rounded'],
-            3: ['counts_sh', 'start_angles_sh', 'end_angles_sh', 'percents_sh_rounded'],
-            4: ['counts_sy', 'start_angles_sy', 'end_angles_sy', 'percents_sy_rounded'],
+            0: ['counts_bj', 'start_angles_bj', 'end_angles_bj', 'percents_bj_rounded', '北京市'],
+            1: ['counts_cd', 'start_angles_cd', 'end_angles_cd', 'percents_cd_rounded', '成都市'],
+            2: ['counts_gz', 'start_angles_gz', 'end_angles_gz', 'percents_gz_rounded', '广州市'],
+            3: ['counts_sh', 'start_angles_sh', 'end_angles_sh', 'percents_sh_rounded', '上海市'],
+            4: ['counts_sy', 'start_angles_sy', 'end_angles_sy', 'percents_sy_rounded', '沈阳市'],
         }
         for (let i=0; i<data['counts_bj'].length; i++) {
             data['counts_plt'][i] = data[mapping[city][0]][i];            // 更新柱形图数据
@@ -170,7 +173,13 @@ def make_categorical(categorical_source, stacked_bar_source, mode='web', show_la
             data['end_angles_plt'][i] = data[mapping[city][2]][i];
             data['percents_plt_rounded'][i] = data[mapping[city][3]][i];  // 更新tooltips中的数据
         }
+        // 更新title [IMP]
+        fig_bar.title.text = mapping[city][4] + '空气质量指数(AQI)等级分布'
+        fig_pie.title.text = mapping[city][4] + '空气质量指数(AQI)等级占比'
+
         source.trigger('change');
+        fig_bar.trigger('change');
+        fig_pie.trigger('change');
         table.trigger('change');
     """)
 

@@ -1,17 +1,28 @@
+div.navbar {
+    /*消除首页中黑色的nav_bar和灰色的jumbotron之间的长条白色空白*/
+    margin-bottom: 0px;
+}
 div.container-fluid {
     margin-top: 0px;
     margin-bottom: 0px;
     margin-right: 10px;
     margin-left: 10px;
 
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding-top: 0px;
+    padding-bottom: 0px;
     padding-left: 0px;
     padding-right: 0px;
 
+    /*取消在'container-fluid'div中的分隔线:
     border-bottom: 1px solid #e0e0e0;
+    在模板中使用<hr>添加分隔线更统一格式*/
+}
+div.page-header {
+    margin-top: 30px;
+    margin-bottom: 30px;
 }
 div.bk-plot-wrapper {
+    /*调整dashboard中的线图和widgets的位置,防止重叠在一起 */
     padding-left: 10px;
     padding-right: 10px;
     vertical-align: middle;

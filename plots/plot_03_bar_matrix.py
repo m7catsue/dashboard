@@ -29,7 +29,10 @@ def make_bar_matrix(data_source, mode='web'):
     """
     按月份作(2*3)散点图(linked panning & brushing)和(2*3)线图;
     图形排列(2*3):北京,成都,广州,上海,沈阳,所有城市;
-    widgets可选选择:空气质量等级(好,中等,对敏感人群不健康,不健康,非常不健康,有毒害)/是否显示线图
+    widgets可选选择:空气质量等级(好,中等,对敏感人群不健康,不健康,非常不健康,有毒害)/是否显示线图;
+
+    在Figure中设置tools=[]以取消图像中默认的'pan'的功能,保证图像不受意外的拖动干扰 [IMP];
+    初始显示每月AQI达到“中等”的天数;title由CustomJS回调函数动态更新
     """
     if mode not in ['web', 'local']:
         raise ValueError("Error: 'mode' parameter must be 'web' or 'local'!")
@@ -37,28 +40,28 @@ def make_bar_matrix(data_source, mode='web'):
     month_labels = ['1月', '2月', '3月', '4月', '5月', '6月',
                     '7月', '8月', '9月', '10月', '11月', '12月']
 
-    fig1 = Figure(plot_width=360, plot_height=240, title='每月到达天数：北京 (Beijing)', toolbar_location=None, logo=None,
-                  x_range=FactorRange(factors=month_labels), y_range=(0, 30))
+    fig1 = Figure(plot_width=360, plot_height=240, title='AQI等级到达"中等"的天数:北京', toolbar_location=None, logo=None,
+                  x_range=FactorRange(factors=month_labels), y_range=(0, 30), tools=[])
     fig1.vbar(x='months', top='fig_1_data', source=data_source, width=0.5)
 
-    fig2 = Figure(plot_width=360, plot_height=240, title='每月到达天数：成都 (Chengdu)', toolbar_location=None, logo=None,
-                  x_range=FactorRange(factors=month_labels), y_range=(0, 30))
+    fig2 = Figure(plot_width=360, plot_height=240, title='AQI等级到达"中等"的天数:成都', toolbar_location=None, logo=None,
+                  x_range=FactorRange(factors=month_labels), y_range=(0, 30), tools=[])
     fig2.vbar(x='months', top='fig_2_data', source=data_source, width=0.5)
 
-    fig3 = Figure(plot_width=360, plot_height=240, title='每月到达天数：广州 (Guangzhou)', toolbar_location=None, logo=None,
-                  x_range=FactorRange(factors=month_labels), y_range=(0, 30))
+    fig3 = Figure(plot_width=360, plot_height=240, title='AQI等级到达"中等"的天数:广州', toolbar_location=None, logo=None,
+                  x_range=FactorRange(factors=month_labels), y_range=(0, 30), tools=[])
     fig3.vbar(x='months', top='fig_3_data', source=data_source, width=0.5)
 
-    fig4 = Figure(plot_width=360, plot_height=240, title='每月到达天数：上海 (Shanghai)', toolbar_location=None, logo=None,
-                  x_range=FactorRange(factors=month_labels), y_range=(0, 30))
+    fig4 = Figure(plot_width=360, plot_height=240, title='AQI等级到达"中等"的天数:上海', toolbar_location=None, logo=None,
+                  x_range=FactorRange(factors=month_labels), y_range=(0, 30), tools=[])
     fig4.vbar(x='months', top='fig_4_data', source=data_source, width=0.5)
 
-    fig5 = Figure(plot_width=360, plot_height=240, title='每月到达天数：沈阳 (Shenyang)', toolbar_location=None, logo=None,
-                  x_range=FactorRange(factors=month_labels), y_range=(0, 30))
+    fig5 = Figure(plot_width=360, plot_height=240, title='AQI等级到达"中等"的天数:沈阳', toolbar_location=None, logo=None,
+                  x_range=FactorRange(factors=month_labels), y_range=(0, 30), tools=[])
     fig5.vbar(x='months', top='fig_5_data', source=data_source, width=0.5)
 
-    fig6 = Figure(plot_width=360, plot_height=240, title='每月到达天数：所有城市 (All)', toolbar_location=None, logo=None,
-                  x_range=FactorRange(factors=month_labels), y_range=(0, 100))  # 所有城市加总
+    fig6 = Figure(plot_width=360, plot_height=240, title='AQI等级到达"中等"的天数:所有城市', toolbar_location=None, logo=None,
+                  x_range=FactorRange(factors=month_labels), y_range=(0, 100), tools=[])  # 所有城市加总
     fig6.vbar(x='months', top='fig_6_data', source=data_source, width=0.5, color='#41ae76')
 
     # [IMP] 调整每个图形的属性:
@@ -98,12 +101,12 @@ def make_bar_matrix(data_source, mode='web'):
 
                                     var arr_empty = ['', '', '', '', '', '', '', '', '', '', '', ''];
                                     var mapping = {
-                                        0: ['bj_level_1', 'cd_level_1', 'gz_level_1', 'sh_level_1', 'sy_level_1', 'all_level_1'],
-                                        1: ['bj_level_2', 'cd_level_2', 'gz_level_2', 'sh_level_2', 'sy_level_2', 'all_level_2'],
-                                        2: ['bj_level_3', 'cd_level_3', 'gz_level_3', 'sh_level_3', 'sy_level_3', 'all_level_3'],
-                                        3: ['bj_level_4', 'cd_level_4', 'gz_level_4', 'sh_level_4', 'sy_level_4', 'all_level_4'],
-                                        4: ['bj_level_5', 'cd_level_5', 'gz_level_5', 'sh_level_5', 'sy_level_5', 'all_level_5'],
-                                        5: ['bj_level_6', 'cd_level_6', 'gz_level_6', 'sh_level_6', 'sy_level_6', 'all_level_6']
+                                        0: ['bj_level_1', 'cd_level_1', 'gz_level_1', 'sh_level_1', 'sy_level_1', 'all_level_1', '好'],
+                                        1: ['bj_level_2', 'cd_level_2', 'gz_level_2', 'sh_level_2', 'sy_level_2', 'all_level_2', '中等'],
+                                        2: ['bj_level_3', 'cd_level_3', 'gz_level_3', 'sh_level_3', 'sy_level_3', 'all_level_3', '对敏感人群不健康'],
+                                        3: ['bj_level_4', 'cd_level_4', 'gz_level_4', 'sh_level_4', 'sy_level_4', 'all_level_4', '不健康'],
+                                        4: ['bj_level_5', 'cd_level_5', 'gz_level_5', 'sh_level_5', 'sy_level_5', 'all_level_5', '非常不健康'],
+                                        5: ['bj_level_6', 'cd_level_6', 'gz_level_6', 'sh_level_6', 'sy_level_6', 'all_level_6', '有毒害']
                                     }
                                     // 更新柱形图的数据;
                                     for (let i=0; i<data['bj_level_1'].length; i++) {
@@ -131,6 +134,14 @@ def make_bar_matrix(data_source, mode='web'):
                                         data['fig_5_lab'] = arr_empty.slice();
                                         data['fig_6_lab'] = arr_empty.slice();
                                     }
+                                    // 更新title [IMP]
+                                    fig1.title.text = 'AQI等级到达\"' + mapping[level][6] + '\"的天数:北京';
+                                    fig2.title.text = 'AQI等级到达\"' + mapping[level][6] + '\"的天数:成都';
+                                    fig3.title.text = 'AQI等级到达\"' + mapping[level][6] + '\"的天数:广州';
+                                    fig4.title.text = 'AQI等级到达\"' + mapping[level][6] + '\"的天数:上海';
+                                    fig5.title.text = 'AQI等级到达\"' + mapping[level][6] + '\"的天数:沈阳';
+                                    fig6.title.text = 'AQI等级到达\"' + mapping[level][6] + '\"的天数:所有城市';
+
                                     source.trigger('change');
                                     fig1.trigger('change'); fig2.trigger('change'); fig3.trigger('change');
                                     fig4.trigger('change'); fig5.trigger('change'); fig6.trigger('change');

@@ -41,7 +41,7 @@ def make_line_plot(data_source, mode='web'):
              legend='日最小值')
 
     # [IMP] 设置线图的属性
-    fig.title.text = 'PM2.5日均浓度变化趋势(ug/m3)'
+    fig.title.text = '北京市PM2.5日均浓度变化趋势(ug/m3)'                                   # 初始显示'北京市'数据;title由CustomJS回调函数动态更新
     fig.xaxis.axis_label = 'Date'
     fig.xaxis[0].ticker.desired_num_ticks = 12                                           # 坐标轴ticker的频率(desired_num_ticks) [IMP]
     fig.xaxis.formatter = DatetimeTickFormatter(hours=["%Y-%m-%d"], days=["%Y-%m-%d"],   # 坐标轴datetime的显示格式 [IMP]
@@ -88,11 +88,11 @@ def make_line_plot(data_source, mode='web'):
                                     var city = select_city_obj.value;              // 当前选择的城市: string
                                     var metrics = select_metrics_obj.active;       // 当前选择的指标: arrary/list
                                     var mapping = {
-                                        beijing: ['bj_min_val', 'bj_mean_val', 'bj_max_val'],
-                                        chengdu: ['cd_min_val', 'cd_mean_val', 'cd_max_val'],
-                                        guangzhou: ['gz_min_val', 'gz_mean_val', 'gz_max_val'],
-                                        shanghai: ['sh_min_val', 'sh_mean_val', 'sh_max_val'],
-                                        shenyang: ['sy_min_val', 'sy_mean_val', 'sy_max_val']
+                                        beijing: ['bj_min_val', 'bj_mean_val', 'bj_max_val', '北京市'],
+                                        chengdu: ['cd_min_val', 'cd_mean_val', 'cd_max_val', '成都市'],
+                                        guangzhou: ['gz_min_val', 'gz_mean_val', 'gz_max_val', '广州市'],
+                                        shanghai: ['sh_min_val', 'sh_mean_val', 'sh_max_val', '上海市'],
+                                        shenyang: ['sy_min_val', 'sy_mean_val', 'sy_max_val', '沈阳市']
                                     };
 
                                     // 初始plt_xxx_val是beijing的值:这里不如下设置话,若用户一直未操作select_city,
@@ -125,6 +125,9 @@ def make_line_plot(data_source, mode='web'):
                                             }
                                         }
                                     }
+                                    // 更新title [IMP]
+                                    target_obj.title.text = mapping[city][3] + 'PM2.5日均浓度变化趋势(ug/m3)';
+
                                     source.trigger('change');
                                     target_obj.trigger('change');
                                 """)

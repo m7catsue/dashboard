@@ -46,10 +46,16 @@ def close_db(exception):
         db.close()
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
+    """Dashboard Demo首页视图函数"""
+    return render_template('index.html')
+
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
     """
-    Dashboard首页视图函数
+    Dashboard页面视图函数
     """
     db = get_db()                                   # get database connection
     form = YearSelectionForm()
@@ -68,7 +74,7 @@ def index():
         script2, div2 = components(categorical_layout)
         script3, div3 = components(bar_matrix_layout)
 
-        return render_template('index.html',
+        return render_template('dashboard.html',
                                form=form, year=selected_year,
                                script1=script1, div1=div1,
                                script2=script2, div2=div2,
@@ -86,7 +92,7 @@ def index():
     script2, div2 = components(categorical_layout)
     script3, div3 = components(bar_matrix_layout)
 
-    return render_template('index.html',
+    return render_template('dashboard.html',
                            form=form, year=selected_year,
                            script1=script1, div1=div1,
                            script2=script2, div2=div2,

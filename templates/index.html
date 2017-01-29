@@ -1,45 +1,83 @@
-{% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% extends "bootstrap/base.html" %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Welcome to Dashboard Demo{% endblock %}
 
 {% block head %}
-{{ super() }}
-<!-- 加载figure和widget的scripts -->
-{{ script1|indent(4)|safe }}
-{{ script2|indent(4)|safe }}
-{{ script3|indent(4)|safe }}
+    {{ super() }}
+    <!-- Bokeh默认以CDN方式加载BokehJS和BokehCSS(注意调整bokeh版本号) -->
+    <link href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.css" rel="stylesheet" type="text/css">
+    <link href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.4.min.css" rel="stylesheet" type="text/css">
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.js"></script>
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.4.min.js"></script>
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='python.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='python.ico') }}" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 {% endblock %}
 
-{% block page_content %}
-<div class="page-header">
-    <h1><b>Dashboard Demo</b></h1>
-    <p><i>luyaxin1990@gmail.com</i></p>
-    <br>
-    <p>欢迎访问Dashboard Demo，本站旨在展示使用已掌握的技术快速搭建出基于数据库应用的数据分析/可视化平台。</p>
-    <p>受限于服务器硬件规格(AWS EC2 t2.medium实例)，加载数据量较大的图形时可能会耗时较长。</p>
-    <br>
-    <p><i><b>请选择PM2.5数据的年份</b> (来源:http://www.stateair.net/web/post/1/1.html)</i>
-        {{ wtf.quick_form(form, form_type='inline', horizontal_columns=('md', 6, 6)) }}</p>
-
-</div>
-
-<div class="container-fluid">
-    <h4><b>1. {{ year }}年PM2.5日平均浓度变化趋势</b></h4>
-    {{ div1|indent(4)|safe }}
-</div>
-
-<div class="container-fluid">
-    <h4><b>2. {{ year }}年空气质量指数(AQI)等级分布</b></h4>
-    <p>点击<b>柱形图/饼图/数据表格</b>可进行选择，点击图像空白位置取消当前选择。</p>
-    {{ div2|indent(4)|safe }}
-</div>
-
-<div class="container-fluid">
-    <h4><b>3. {{ year }}年各月空气质量指数(AQI)各等级达标天数分布</b></h4>
-    {{ div3|indent(4)|safe }}
-    <br>
-    <br>
-</div>
+{% block navbar %}
+    <div class="navbar navbar-inverse" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{{ url_for('index') }}">Home</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('heat_maps') }}">Heat Maps</a></li>
+                    <li><a href="{{ url_for('stream') }}">Streaming</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 {% endblock %}
+
+{% block content %}
+    <div class="jumbotron">
+        <div class="container">
+            <h1>Dashboard Demo</h1>
+            <p>欢迎访问Dashboard Demo，本站旨在展示使用已掌握的技术快速搭建出基于数据库应用的数据分析/可视化平台。</p>
+            <p>
+                <a class="btn btn-primary btn-lg" href="{{ url_for('dashboard') }}">前往Dashboard »</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h2>Dashboard</h2>
+                <p>基于数据库应用的可交互的数据分析/可视化平台。可用于(1)对日常数据指标的监控和分析(2)呈现单独数据挖掘项目的结论和报告。</p>
+                <p>
+                    <a class="btn btn-default" href="{{ url_for('dashboard') }}">前往Dashboard »</a>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h2>Heat Maps</h2>
+                <p>基于地理位置信息进行数据可视化。依据地理位置信息对数据进行聚合，以热力图(Heat Maps)的形式更直观地呈现数据的特征。</p>
+                <p>
+                    <a class="btn btn-default" href="{{ url_for('heat_maps') }}">前往HeatMaps »</a>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h2>Streaming</h2>
+                <p>对streaming数据进行实时分析和可视化。通过对实时数据进行监控和分析，在最短时间内发现任何可能出现的异常情况。</p>
+                <p>
+                    <a class="btn btn-default" href="{{ url_for('stream') }}">前往Streaming »</a>
+                </p>
+            </div>
+        </div>
+        <hr>  <!-- 增加一条水平分隔线 -->
+        <footer>
+            <p>© luyaxin1990@gmail.com</p>
+        </footer>
+    </div>
+{% endblock %}
+
 

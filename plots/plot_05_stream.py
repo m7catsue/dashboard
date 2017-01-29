@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from bokeh.plotting import Figure
+from bokeh.models import FixedTicker
 from bokeh.layouts import column, row, layout, gridplot, WidgetBox
 from bokeh.io import curdoc
 
@@ -23,6 +24,10 @@ def make_streaming_plots(ajax_data_source, mode='web'):
     fig3 = Figure(plot_width=360, plot_height=240, title='Streaming模拟数据: [-1, 1)均匀分布',
                   y_range=(-2, 2), toolbar_location=None, logo=None, tools=[])
     fig3.circle('x', 'y_random', source=ajax_data_source, size=3, color="#2171b5", alpha=0.9)
+
+    fig1.yaxis[0].ticker = FixedTicker(ticks=[-1.5, -1, -0.5, 0, 0.5, 1, 1.5])  # 设置y轴刻度
+    fig2.yaxis[0].ticker = FixedTicker(ticks=[-1.5, -1, -0.5, 0, 0.5, 1, 1.5])
+    fig3.yaxis[0].ticker = FixedTicker(ticks=[-2, -1, 0, 1, 2])
 
     for fig in [fig1, fig2, fig3]:            # 设置streaming图像的x轴属性(x轴刻度随着streaming数据而增大)
         fig.x_range.follow = "end"

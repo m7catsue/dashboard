@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Heat Maps{% endblock %}
 
 {% block head %}
 {{ super() }}
@@ -12,15 +12,13 @@
 {% block page_content %}
 <div class="page-header">
     <h1><b>Heat Maps</b></h1>
-    <p><i>luyaxin1990@gmail.com</i></p>
     <br>
+    <p>基于地理位置信息进行数据可视化。依据地理位置信息对数据进行聚合，以热力图(Heat Maps)的形式更直观地呈现数据的特征。</p>
     <p>受限于服务器硬件规格(AWS EC2 t2.medium实例)，加载数据量较大的图形时可能会耗时较长。</p>
 </div>
 
 <div class="container-fluid">
     {{ div_maps|indent(4)|safe }}
-    <br>
-    <br>
 </div>
 
 {% endblock %}
