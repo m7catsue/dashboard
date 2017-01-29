@@ -83,7 +83,7 @@ def make_bar_matrix(data_source, mode='web'):
     # 设置widgets和共用的回调函数(generic_callback)
     select_level = RadioButtonGroup(labels=['好', '中等', '对敏感人群不健康', '不健康', '非常不健康', '有毒害'], active=1,
                                     height=50, width=450)
-    toggle_label = Toggle(label='显示柱形图数值', button_type='default', active=False,
+    toggle_label = Toggle(label='显示数值/隐藏数值', button_type='default', active=False,
                           height=50, width=200)
 
     generic_callback = CustomJS(args=dict(source=data_source,

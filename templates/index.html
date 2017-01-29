@@ -16,8 +16,8 @@
     <h1><b>Dashboard Demo</b></h1>
     <p><i>luyaxin1990@gmail.com</i></p>
     <br>
-    <p>欢迎访问Dashboard Demo，本站旨在展示使用已掌握的技术快速制作出基于数据库应用的数据分析/可视化平台。</p>
-    <p>受限于服务器硬件规格(AWS EC2 t2.micro实例)，加载数据量较大的图形时可能会耗时较长。</p>
+    <p>欢迎访问Dashboard Demo，本站旨在展示使用已掌握的技术快速搭建出基于数据库应用的数据分析/可视化平台。</p>
+    <p>受限于服务器硬件规格(AWS EC2 t2.medium实例)，加载数据量较大的图形时可能会耗时较长。</p>
     <br>
     <p><i><b>请选择PM2.5数据的年份</b> (来源:http://www.stateair.net/web/post/1/1.html)</i>
         {{ wtf.quick_form(form, form_type='inline', horizontal_columns=('md', 6, 6)) }}</p>
@@ -31,6 +31,7 @@
 
 <div class="container-fluid">
     <h4><b>2. {{ year }}年空气质量指数(AQI)等级分布</b></h4>
+    <p>点击<b>柱形图/饼图/数据表格</b>可进行选择，点击图像空白位置取消当前选择。</p>
     {{ div2|indent(4)|safe }}
 </div>
 

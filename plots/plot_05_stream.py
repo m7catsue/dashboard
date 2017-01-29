@@ -46,10 +46,10 @@ if __name__ == '__main__':
     from bokeh.io import output_file, save, show
     from WebDevelopment.dashboard.decorators import crossdomain  # PycharmProjects目录属于sys.path
 
-    x = list(np.arange(0, 6, 0.1))                         # 模拟数据
+    x = list(np.arange(0, 2, 0.1))                         # 模拟数据
     y_sin = [math.sin(xi) for xi in x]
     y_cos = [math.cos(xi) for xi in x]
-    y_random = [random.uniform(-1, 1) for i in range(60)]  # random.random()返回[0.0, 1.0)之间的浮点数
+    y_random = [random.uniform(-1, 1) for i in range(20)]  # random.random()返回[0.0, 1.0)之间的浮点数
 
     ajax_source = AjaxDataSource(data=dict(x=x,
                                            y_sin=y_sin,
@@ -75,7 +75,7 @@ if __name__ == '__main__':
         y_random.append(random.uniform(-1, 1))
         return jsonify(x=x[-1], y_sin=y_sin[-1], y_cos=y_cos[-1], y_random=y_random[-1])
 
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5050)
 
 
 

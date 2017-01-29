@@ -113,16 +113,17 @@ def heat_maps():
     return render_template('maps.html',
                            script_maps=script_maps, div_maps=div_maps)
 
+
 ################################
 #
 # Plotting Streaming Data
 #
 ################################
 
-x = list(np.arange(0, 6, 0.1))                         # streaming模拟数据
+x = list(np.arange(0, 1, 0.1))                         # streaming模拟数据
 y_sin = [math.sin(xi) for xi in x]
 y_cos = [math.cos(xi) for xi in x]
-y_random = [random.uniform(-1, 1) for i in range(60)]  # random.random()返回[0.0, 1.0)之间的浮点数
+y_random = [random.uniform(-1, 1) for i in range(10)]  # random.random()返回[0.0, 1.0)之间的浮点数
 
 
 @app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
