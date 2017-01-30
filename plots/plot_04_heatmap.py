@@ -7,7 +7,7 @@ from bokeh.plotting import Figure
 from bokeh.models import ColumnDataSource, CustomJS, Legend, Patches, \
     HoverTool, PanTool, WheelZoomTool, BoxZoomTool, ResetTool, TapTool
 from bokeh.models.widgets import RadioGroup
-from bokeh.layouts import column, row, layout, gridplot, WidgetBox
+from bokeh.layouts import row
 
 
 def make_cn_data_source(var_dict, num_color_level=7, log_scale=False):
@@ -436,7 +436,7 @@ def make_world_data_source(var_dict, num_color_level=9, log_scale=False):
                                               colors_0=country_colors_0,
                                               colors_1=country_colors_1,
                                               colors_2=country_colors_2,
-                                              colors_plt=country_colors_0))
+                                              colors_plt=country_colors_1))
     return world_source
 
 
@@ -458,7 +458,7 @@ def plot_world_map(data_source, mode='web'):
                 source=data_source)
 
     # 添加可选择heat map颜色的widget
-    select_color = RadioGroup(labels=['配色方案: RdBu_r', '配色方案: PuBu', '配色方案: PuBuGn'], active=0)
+    select_color = RadioGroup(labels=['配色方案: RdBu_r', '配色方案: PuBu', '配色方案: PuBuGn'], active=1)
     callback = CustomJS(args=dict(source=data_source), code="""
             var data = source.data;
             var active = String(cb_obj.active);
@@ -552,7 +552,7 @@ if __name__ == '__main__':
     tab2 = Panel(child=fig_us_state, title='美国地图')
     tab3 = Panel(child=fig_world, title='世界地图')
 
-    tabs = Tabs(tabs=[tab1, tab2, tab3], width=1050, height=540, active=0)
+    tabs = Tabs(tabs=[tab1, tab2, tab3], width=1050, height=540, active=2)
 
     output_file('example_heat_maps.html')
     show(tabs)

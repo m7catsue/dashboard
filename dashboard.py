@@ -161,7 +161,8 @@ def stream():
     对streaming的模拟数据进行实时的数据可视化
     """
     ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
-                                 data_url='http://localhost:5000/data',
+                                 #data_url='http://localhost:5000/data',
+                                 data_url='http://54.169.147.99/data',
                                  polling_interval=200, mode='append', max_size=500)
     fig_layout = make_streaming_plots(ajax_source, mode='web')
 
