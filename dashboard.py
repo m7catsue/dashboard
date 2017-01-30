@@ -123,7 +123,7 @@ def heat_maps():
     tab2 = Panel(child=plot_us_state_map(source_us, mode='web'), title='美国地图')
     tab3 = Panel(child=plot_world_map(source_wd, mode='web'), title='世界地图')
 
-    tabs = Tabs(tabs=[tab1, tab2, tab3], width=848, height=500, active=0)
+    tabs = Tabs(tabs=[tab1, tab2, tab3], width=900, height=405, active=0)
 
     script_maps, div_maps = components(tabs)
     return render_template('maps.html',

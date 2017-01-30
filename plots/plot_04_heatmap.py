@@ -105,7 +105,7 @@ def plot_cn_map(data_source, mode='web'):
                       point_policy='follow_mouse')
     tools = [PanTool(), WheelZoomTool(), BoxZoomTool(), TapTool(), hover, ResetTool()]
 
-    fig = Figure(plot_width=848, plot_height=480, title='2016中国各省份空气污染物浓度示意图 (随机模拟数据)',
+    fig = Figure(plot_width=720, plot_height=405, title='2016中国各省份空气污染物浓度示意图 (随机模拟数据)',
                  toolbar_location='above', tools=tools, logo=None, webgl=True)  # webgl=True: allows rendering via GPUs
     fig.patches('province_xs', 'province_ys',
                 fill_color='colors_plt', fill_alpha=0.7,
@@ -319,7 +319,7 @@ def plot_us_state_map(data_source, mode='web'):
                       point_policy='follow_mouse')
     tools = [PanTool(), WheelZoomTool(), BoxZoomTool(), TapTool(), hover, ResetTool()]
 
-    fig = Figure(plot_width=848, plot_height=480, title="2016美国各州空气污染物浓度示意图 (随机模拟数据)",
+    fig = Figure(plot_width=720, plot_height=405, title="2016美国各州空气污染物浓度示意图 (随机模拟数据)",
                  toolbar_location="above", tools=tools, logo=None, webgl=True)  # webgl=True: allows rendering via GPUs
 
     fig.patches('state_xs', 'state_ys',
@@ -450,7 +450,7 @@ def plot_world_map(data_source, mode='web'):
                       point_policy='follow_mouse')
     tools = [PanTool(), WheelZoomTool(), BoxZoomTool(), TapTool(), hover, ResetTool()]
 
-    fig = Figure(plot_width=848, plot_height=480, title='2016世界各国空气污染物浓度示意图 (随机模拟数据)',
+    fig = Figure(plot_width=720, plot_height=405, title='2016世界各国空气污染物浓度示意图 (随机模拟数据)',
                  toolbar_location='above', tools=tools, logo=None, webgl=True)  # webgl=True: allows rendering via GPUs
     fig.patches('country_xs', 'country_ys',
                 fill_color='colors_plt', fill_alpha=0.7,
