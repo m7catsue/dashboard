@@ -123,7 +123,7 @@ def heat_maps():
     tab2 = Panel(child=plot_us_state_map(source_us, mode='web'), title='美国地图')
     tab3 = Panel(child=plot_world_map(source_wd, mode='web'), title='世界地图')
 
-    tabs = Tabs(tabs=[tab1, tab2, tab3], width=900, height=405, active=0)
+    tabs = Tabs(tabs=[tab1, tab2, tab3], width=900, height=405, active=2)
 
     script_maps, div_maps = components(tabs)
     return render_template('maps.html',
@@ -162,7 +162,7 @@ def stream():
     """
     ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
                                  #data_url='http://localhost:5000/data',
-                                 data_url='http://54.169.147.99/data',
+                                 data_url='http://127.0.0.1:8080/data',
                                  polling_interval=200, mode='append', max_size=500)
     fig_layout = make_streaming_plots(ajax_source, mode='web')
 
