@@ -19,9 +19,12 @@
             <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
             基于数据库应用的数据分析/可视化平台。<br>可用于: (1)对日常数据指标的监控和分析; (2)呈现单独数据挖掘项目的结论和报告。
         </p>
-        <p>受限于服务器硬件规格(AWS EC2 t2.medium实例)，加载数据量较大的图形时可能会耗时较长。</p>
+        <p>
+            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+            受限于服务器硬件规格(AWS EC2 t2.medium实例)，加载数据量较大的图形时可能会出现耗时较长的情况。
+        </p>
         <br>
-        <p><i><b>请选择PM2.5数据的年份</b> (来源:http://www.stateair.net/web/post/1/1.html)</i>
+        <p><i><b>请选择PM2.5数据的年份</b> (数据来源：<a href="http://www.stateair.net/web/post/1/1.html">http://www.stateair.net</a>)</i>
             {{ wtf.quick_form(form, form_type='inline',
                               horizontal_columns=('md', 6, 6),
                               button_map={'submit': 'btn btn-primary btn-md'}) }}
@@ -36,7 +39,9 @@
 
     <div class="container-fluid">
         <h4><b>2. {{ year }}年空气质量指数(AQI)等级分布</b></h4>
-        <p>点击<b>柱形图/饼图/数据表格</b>可进行选择，点击图像空白位置取消当前选择。</p>
+        <p><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+            点击<b>柱形图/饼图/数据表格</b>可进行选择，点击图像空白位置取消当前选择。
+        </p>
         {{ div2|indent(4)|safe }}
     </div>
     <hr> <!-- 增加一条水平分隔线 -->

@@ -12,22 +12,24 @@ div.container-fluid {
     padding-bottom: 0px;
     padding-left: 0px;
     padding-right: 0px;
-
     /*取消在'container-fluid'div中的分隔线:
     border-bottom: 1px solid #e0e0e0;
     在模板中使用<hr>添加分隔线更统一格式*/
 }
 div.page-header {
-    margin-top: 30px;
-    margin-bottom: 30px;
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+div#heat-map-page-header {  /*对于heat_map页面的page header调整页面空白*/
+    margin-top: 25px;
+    margin-bottom: 15px;
 }
 div.bk-plot-wrapper {
     /*调整dashboard中的线图和widgets的位置,防止重叠在一起 */
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 20px;
+    padding-right: 5px;
     vertical-align: middle;
 }
-
 .navbar-brand {
     /*调整导航栏中glyphicon"Home"与导航栏中其他项目的对齐,
     padding-top: 13px; padding-bottom: 17px;*/
@@ -39,4 +41,30 @@ div.bk-plot-wrapper {
     padding-right: 15px;
     font-size: 18px;
     line-height: 20px;
+}
+.bk-root {
+    /*通过CSS类的继承来调整"streaming"页面的实时分析widget(div)的font-size和font-family*/
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 11pt;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+/*定义一个节点同时拥有2个class属性的情况*/
+.bk-bs-nav.bk-bs-nav-tabs {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight: bold;
+}
+
+/*调整heat map和widget之间的空白距离*/
+div#heat-map .bk-plot-wrapper {
+    padding-left: 5px;
+    padding-right: 5px;
+    vertical-align: middle;
+}
+div#heat-map .bk-widget-box.bk-layout-fixed {
+    margin-left: 10px;
+}
+div#heat-map .bk-plot-layout.bk-layout-fixed {
+    margin-right: 10px;
 }

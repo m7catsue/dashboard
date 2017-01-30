@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}Streamiing{% endblock %}
+{% block title %}Streaming{% endblock %}
 
 {% block head %}
 {{ super() }}
@@ -17,13 +17,14 @@
         <span class="glyphicon glyphicon-send" aria-hidden="true"></span>
         对streaming数据进行实时分析和可视化。
     </p>
-    <p>受限于服务器硬件规格(AWS EC2 t2.medium实例)，加载数据量较大的图形时可能会耗时较长。</p>
+    <p>
+        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+        受限于服务器硬件规格(AWS EC2 t2.medium实例)，加载数据量较大的图形时可能会出现耗时较长的情况。
+    </p>
 </div>
 
 <div class="container-fluid">
     {{ div_stream|indent(4)|safe }}
-    <br>
-    <br>
 </div>
 
 {% endblock %}

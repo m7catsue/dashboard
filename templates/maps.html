@@ -10,17 +10,20 @@
 {% endblock %}
 
 {% block page_content %}
-<div class="page-header">
+<div class="page-header", id="heat-map-page-header">
     <h1><b>Heat Maps</b></h1>
     <br>
     <p>
         <span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>
-        基于地理位置信息进行数据可视化。依据地理位置信息对数据进行聚合，以热力图(Heat Maps)的形式更直观地呈现数据的特征。
+        基于地理位置信息进行数据可视化。根据地理位置信息对数据进行聚合，以热力图(Heat Maps)的形式更直观地呈现数据的特征。
     </p>
-    <p>受限于服务器硬件规格(AWS EC2 t2.medium实例)，加载数据量较大的图形时可能会耗时较长。</p>
+    <p>
+        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+        受限于服务器硬件规格(AWS EC2 t2.medium实例)，加载数据量较大的图形时可能会出现耗时较长的情况。
+    </p>
 </div>
 
-<div class="container-fluid">
+<div class="container-fluid" id="heat-map">
     {{ div_maps|indent(4)|safe }}
 </div>
 

@@ -27,9 +27,7 @@ bootstrap = Bootstrap(app)
 
 
 def get_db():
-    """
-    获得数据库连接(db=g._database)
-    """
+    """获得数据库连接(db=g._database)"""
     db = getattr(g, '_database', None)
     if not db:
         db = g._database = sqlite3.connect(DATABASE)
@@ -38,9 +36,7 @@ def get_db():
 
 @app.teardown_appcontext
 def close_db(exception):
-    """
-    teardown应用上下文时,关闭数据库连接
-    """
+    """teardown应用上下文时,关闭数据库连接"""
     db = getattr(g, '_database', None)
     if db:
         db.close()
@@ -48,8 +44,15 @@ def close_db(exception):
 
 @app.route('/')
 def index():
-    """Dashboard Demo首页视图函数"""
+    """Dashboard Demo首页"""
     return render_template('index.html')
+
+
+#############################
+#
+# (1) Dashboard
+#
+#############################
 
 
 @app.route('/dashboard', methods=['GET', 'POST'])
@@ -99,6 +102,13 @@ def dashboard():
                            script3=script3, div3=div3)
 
 
+##################################
+#
+# (2) Heat Maps
+#
+##################################
+
+
 @app.route('/heat_maps')
 def heat_maps():
     """
@@ -113,18 +123,18 @@ def heat_maps():
     tab2 = Panel(child=plot_us_state_map(source_us, mode='web'), title='美国地图')
     tab3 = Panel(child=plot_world_map(source_wd, mode='web'), title='世界地图')
 
-    tabs = Tabs(tabs=[tab1, tab2, tab3], width=848, height=600, active=0)
+    tabs = Tabs(tabs=[tab1, tab2, tab3], width=848, height=500, active=0)
 
     script_maps, div_maps = components(tabs)
     return render_template('maps.html',
                            script_maps=script_maps, div_maps=div_maps)
 
 
-################################
+####################################
 #
-# Plotting Streaming Data
+# (3) Plotting Streaming Data
 #
-################################
+####################################
 
 x = list(np.arange(0, 1, 0.1))                         # streaming模拟数据
 y_sin = [math.sin(xi) for xi in x]

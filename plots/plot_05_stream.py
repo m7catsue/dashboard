@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from bokeh.plotting import Figure
-from bokeh.models import FixedTicker
+from bokeh.models import FixedTicker, CustomJS
+from bokeh.models.widgets import Div
 from bokeh.layouts import column, row, layout, gridplot, WidgetBox
 from bokeh.io import curdoc
 
@@ -33,12 +34,52 @@ def make_streaming_plots(ajax_data_source, mode='web'):
         fig.x_range.follow = "end"
         fig.x_range.follow_interval = 20      # follow_interval:整个x轴所显示的范围
 
+    # 设置Streaming Widget
+    div = Div(text="""<h4><b>对streaming数据的实时分析：</b></h4>
+                      <p>当前图像<b>X轴</b>最右侧坐标点为：0</p>
+                      <p>
+                          (1)<b>正弦函数</b>最近50期的平均值为： 0;
+                          (2)<b>余弦函数</b>最近50期的平均值为： 0;
+                          (3)<b>均匀分布</b>最近50期的平均值为： 0.
+                      <p/>
+                    """,
+              width=1200, height=20)
+    callback = CustomJS(args=dict(source=ajax_data_source, div=div),
+                        code="""
+                        var data = source.data;
+                        var space = '&nbsp;'           // "&nbsp;"表示"non breaking space"即一个空格 [IMP]
+                        function arr_mean(arr) {
+                            var sum = 0;
+                            for (let i=0; i<arr.length; i++) {
+                                sum = sum + arr[i]
+                            }
+                            return sum/arr.length;
+                        }
+                        //console.log(data['x'].length); console.log(data['x'].slice(-1)[0]);
+
+                        // 更新Div Widget中的text内容;保留2位小数
+                        div.text = "<h4><b>对streaming数据的实时分析：</b></h4>" +
+                                   "<p>当前图像<b>X轴</b>最右侧坐标点为：<b>" + data['x'].slice(-1)[0].toFixed(2) + "</b></p>" +
+                                   "<p>" +
+                                      "(1)<b>正弦函数</b>最近50期的平均值为：<b>" + arr_mean(data['y_sin'].slice(-50)).toFixed(2) + "</b>." +
+                                      space.repeat(3) +
+                                      "(2)<b>正弦函数</b>最近50期的平均值为：<b>" + arr_mean(data['y_cos'].slice(-50)).toFixed(2) + "</b>." +
+                                      space.repeat(3) +
+                                      "(3)<b>均匀分布</b>最近50期的平均值为：<b>" + arr_mean(data['y_random'].slice(-50)).toFixed(2) + "</b>." +
+                                   "</p>"
+                        div.trigger('change');
+                        """)
+
+    ajax_data_source.js_on_change('change', callback)  # [IMP] 注意对AjaxDtaSource和Div(Paragraph)插件的设定('change')
+
     if mode == 'web':
-        fig_layout = row(fig1, fig2, fig3)
+        fig_layout = layout([fig1, fig2, fig3],
+                            [div, ])
         return fig_layout
     if mode == 'local':
         document = curdoc()
-        document.add_root(row(fig1, fig2, fig3))
+        document.add_root(layout([fig1, fig2, fig3],
+                                 [div, ]))
         return document
 
 
@@ -60,7 +101,7 @@ if __name__ == '__main__':
                                            y_sin=y_sin,
                                            y_cos=y_cos,
                                            y_random=y_random),
-                                 data_url='http://localhost:5000/data',              # 每隔200ms访问data_url以获取数据
+                                 data_url='http://localhost:5050/data',              # 每隔200ms访问data_url以获取数据
                                  polling_interval=200, mode='append', max_size=500)  # DataSource中每列所保留的最大长度为500
 
     doc = make_streaming_plots(ajax_source, mode='local')

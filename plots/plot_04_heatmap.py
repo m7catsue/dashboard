@@ -3,9 +3,11 @@ import os.path
 import math
 import pandas as pd
 import seaborn as sns
-from bokeh.plotting import Figure, ColumnDataSource
+from bokeh.plotting import Figure
 from bokeh.models import ColumnDataSource, CustomJS, Legend, Patches, \
     HoverTool, PanTool, WheelZoomTool, BoxZoomTool, ResetTool, TapTool
+from bokeh.models.widgets import RadioGroup
+from bokeh.layouts import column, row, layout, gridplot, WidgetBox
 
 
 def make_cn_data_source(var_dict, num_color_level=7, log_scale=False):
@@ -27,14 +29,18 @@ def make_cn_data_source(var_dict, num_color_level=7, log_scale=False):
                 var_dict_plt[key] = 0
 
     # 数值c用于决定各地区的color_index(用var_dict_plt中数据)
-    colors = sns.color_palette('Reds', num_color_level).as_hex()
+    colors_0 = sns.color_palette('Reds', num_color_level).as_hex()
+    colors_1 = sns.color_palette('PuBu', num_color_level).as_hex()
+    colors_2 = sns.color_palette('PuBuGn', num_color_level).as_hex()
     c = max(var_dict_plt.values()) / (num_color_level - 1)
 
-    province_xs = []        # to plot bountries
-    province_ys = []        # to plot bountries
-    province_names = []     # to display province name
-    province_vars = []      # to display province variable value
-    province_colors = []    # to display province color
+    province_xs = []             # to plot bountries
+    province_ys = []             # to plot bountries
+    province_names = []          # to display province name
+    province_vars = []           # to display province variable value
+    province_colors_0 = []       # to display province color
+    province_colors_1 = []
+    province_colors_2 = []
 
     for province_obj in cn_features:
         province_name = province_obj['properties']['name']
@@ -52,10 +58,13 @@ def make_cn_data_source(var_dict, num_color_level=7, log_scale=False):
                 province_vars.append(province_var)                  # province_var是真实值
                 if float(province_var_scaled) > 0:
                     color_index = int(round(province_var_scaled / c, 0))
-                    province_colors.append(colors[color_index])
+                    province_colors_0.append(colors_0[color_index])
+                    province_colors_1.append(colors_1[color_index])
+                    province_colors_2.append(colors_2[color_index])
                 else:
-                    province_colors.append(colors[0])               # 若var_dict中value为0,使用colors[0]
-
+                    province_colors_0.append(colors_0[0])           # 若var_dict中value为0,使用colors[0]
+                    province_colors_1.append(colors_1[0])
+                    province_colors_2.append(colors_2[0])
         else:
             coords = province_obj['geometry']['coordinates'][0]
             province_xs.append(list(map(lambda x: x[0], coords)))
@@ -65,15 +74,22 @@ def make_cn_data_source(var_dict, num_color_level=7, log_scale=False):
 
             if float(province_var_scaled) > 0:
                 color_index = int(round(province_var_scaled / c, 0))
-                province_colors.append(colors[color_index])
+                province_colors_0.append(colors_0[color_index])
+                province_colors_1.append(colors_1[color_index])
+                province_colors_2.append(colors_2[color_index])
             else:
-                province_colors.append(colors[0])  # 若dict_variable中value为0,使用colors[0]
+                province_colors_0.append(colors_0[0])               # 若var_dict中value为0,使用colors[0]
+                province_colors_1.append(colors_1[0])
+                province_colors_2.append(colors_2[0])
 
     cn_source = ColumnDataSource(data=dict(province_xs=province_xs,
                                            province_ys=province_ys,
-                                           color=province_colors,
                                            province_name=province_names,
-                                           province_var=province_vars))
+                                           province_var=province_vars,
+                                           colors_0=province_colors_0,
+                                           colors_1=province_colors_1,
+                                           colors_2=province_colors_2,
+                                           colors_plt=province_colors_0))
     return cn_source
 
 
@@ -91,15 +107,33 @@ def plot_cn_map(data_source, mode='web'):
 
     fig = Figure(plot_width=848, plot_height=480, title='2016中国各省份空气污染物浓度示意图 (随机模拟数据)',
                  toolbar_location='above', tools=tools, logo=None, webgl=True)  # webgl=True: allows rendering via GPUs
-    renderer = fig.patches('province_xs', 'province_ys',
-                           fill_color='color', fill_alpha=0.7,
-                           line_color="white", line_width=0.5,
-                           source=data_source)
+    fig.patches('province_xs', 'province_ys',
+                fill_color='colors_plt', fill_alpha=0.7,
+                line_color="white", line_width=1.0,
+                source=data_source)
+
+    # 添加可选择heat map颜色的widget
+    select_color = RadioGroup(labels=['配色方案: Reds', '配色方案: PuBu', '配色方案: PuBuGn'], active=0)
+    callback = CustomJS(args=dict(source=data_source), code="""
+        var data = source.data;
+        var active = String(cb_obj.active);
+        var mapping = {
+            0: 'colors_0',
+            1: 'colors_1',
+            2: 'colors_2'
+        }
+        for (let i=0; i<data['province_name'].length; i++) {
+            data['colors_plt'][i] = data[mapping[active]][i]
+        }
+        source.trigger('change');
+    """)
+
+    select_color.js_on_change('active', callback)
 
     if mode == 'web':
-        return fig
+        return row(fig, select_color)
     if mode == 'local':
-        return fig
+        return row(fig, select_color)
 
 
 ###################################################################################################################
@@ -200,7 +234,7 @@ def plot_us_county_map(data_source, mode='web'):
 
     fig.patches('county_xs', 'county_ys',                                       # polygons are called Patches in Bokeh
                 fill_color='colors', fill_alpha=0.7,
-                line_color="white", line_width=0.5,
+                line_color="white", line_width=1.0,
                 source=data_source)
 
     if mode == 'web':
@@ -232,12 +266,16 @@ def make_us_state_data_source(var_dict, num_color_level=7, log_scale=False):
                 var_dict_plt[key] = 0
 
     # 数值c用于决定各地区的color_index(用var_dict_plt中数据)
-    colors = sns.color_palette('Reds', num_color_level).as_hex()
+    colors_0 = sns.color_palette('Reds', num_color_level).as_hex()
+    colors_1 = sns.color_palette('PuBu', num_color_level).as_hex()
+    colors_2 = sns.color_palette('PuBuGn', num_color_level).as_hex()
     c = max(var_dict_plt.values()) / (num_color_level - 1)
 
     state_names = []
     state_variables = []
-    state_colors = []
+    state_colors_0 = []
+    state_colors_1 = []
+    state_colors_2 = []
 
     for state_code in states.keys():
         if state_code.lower() in EXCLUDED:
@@ -251,14 +289,21 @@ def make_us_state_data_source(var_dict, num_color_level=7, log_scale=False):
 
         if float(state_var_scaled) > 0:
             color_index = int(round(state_var_scaled / c, 0))
-            state_colors.append(colors[color_index])
+            state_colors_0.append(colors_0[color_index])
+            state_colors_1.append(colors_1[color_index])
+            state_colors_2.append(colors_2[color_index])
         else:
-            state_colors.append(colors[0])                    # 若var_dict中value为0,使用colors[0]
+            state_colors_0.append(colors_0[0])                # 若var_dict中value为0,使用colors[0]
+            state_colors_1.append(colors_1[0])
+            state_colors_2.append(colors_2[0])
 
     us_source = ColumnDataSource(data=dict(state_xs=state_xs, state_ys=state_ys,
-                                           state_names=state_names,
-                                           colors=state_colors,
-                                           state_vars=state_variables))
+                                           state_name=state_names,
+                                           state_vars=state_variables,
+                                           colors_0=state_colors_0,
+                                           colors_1=state_colors_1,
+                                           colors_2=state_colors_2,
+                                           colors_plt=state_colors_1))
     return us_source
 
 
@@ -278,14 +323,32 @@ def plot_us_state_map(data_source, mode='web'):
                  toolbar_location="above", tools=tools, logo=None, webgl=True)  # webgl=True: allows rendering via GPUs
 
     fig.patches('state_xs', 'state_ys',
-                fill_color='colors', fill_alpha=0.7,
-                line_color="white", line_width=0.5,
+                fill_color='colors_plt', fill_alpha=0.7,
+                line_color="white", line_width=1.0,
                 source=data_source)
 
+    # 添加可选择heat map颜色的widget
+    select_color = RadioGroup(labels=['配色方案: Reds', '配色方案: PuBu', '配色方案: PuBuGn'], active=1)
+    callback = CustomJS(args=dict(source=data_source), code="""
+            var data = source.data;
+            var active = String(cb_obj.active);
+            var mapping = {
+                0: 'colors_0',
+                1: 'colors_1',
+                2: 'colors_2'
+            }
+            for (let i=0; i<data['state_name'].length; i++) {
+                data['colors_plt'][i] = data[mapping[active]][i]
+            }
+            source.trigger('change');
+        """)
+
+    select_color.js_on_change('active', callback)
+
     if mode == 'web':
-        return fig
+        return row(fig, select_color)
     if mode == 'local':
-        return fig
+        return row(fig, select_color)
 
 
 ###################################################################################################################
@@ -311,14 +374,18 @@ def make_world_data_source(var_dict, num_color_level=9, log_scale=False):
                 var_dict_plt[key] = 0
 
     # 数值c用于决定各地区的color_index(用var_dict_plt中数据)
-    colors = sns.color_palette('RdBu_r', num_color_level).as_hex()
+    colors_0 = sns.color_palette('RdBu_r', num_color_level).as_hex()
+    colors_1 = sns.color_palette('PuBu', num_color_level).as_hex()
+    colors_2 = sns.color_palette('PuBuGn', num_color_level).as_hex()
     c = max(var_dict_plt.values()) / (num_color_level - 1)
 
     country_xs = []                   # to plot bountries
     country_ys = []                   # to plot bountries
     country_names = []                # to display province name
     country_vars = []                 # to display province variable value
-    country_colors = []               # to display province color
+    country_colors_0 = []             # to display province color
+    country_colors_1 = []
+    country_colors_2 = []
 
     for country_obj in features:
         country_name = country_obj['properties']['name']
@@ -337,9 +404,13 @@ def make_world_data_source(var_dict, num_color_level=9, log_scale=False):
                 country_vars.append(country_var)                # province_var是真实值
                 if float(country_var_scaled) > 0:
                     color_index = int(round(country_var_scaled / c, 0))
-                    country_colors.append(colors[color_index])
+                    country_colors_0.append(colors_0[color_index])
+                    country_colors_1.append(colors_1[color_index])
+                    country_colors_2.append(colors_2[color_index])
                 else:
-                    country_colors.append(colors[0])            # 若var_dict中value为0,使用colors[0]
+                    country_colors_0.append(colors_0[0])        # 若var_dict中value为0,使用colors[0]
+                    country_colors_1.append(colors_1[0])
+                    country_colors_2.append(colors_2[0])
 
         else:
             coords = country_obj['geometry']['coordinates'][0]
@@ -350,15 +421,22 @@ def make_world_data_source(var_dict, num_color_level=9, log_scale=False):
 
             if float(country_var_scaled) > 0:
                 color_index = int(round(country_var_scaled / c, 0))
-                country_colors.append(colors[color_index])
+                country_colors_0.append(colors_0[color_index])
+                country_colors_1.append(colors_1[color_index])
+                country_colors_2.append(colors_2[color_index])
             else:
-                country_colors.append(colors[0])  # 若dict_variable中value为0,使用colors[0]
+                country_colors_0.append(colors_0[0])  # 若var_dict中value为0,使用colors[0]
+                country_colors_1.append(colors_1[0])
+                country_colors_2.append(colors_2[0])
 
     world_source = ColumnDataSource(data=dict(country_xs=country_xs,
                                               country_ys=country_ys,
-                                              color=country_colors,
                                               country_name=country_names,
-                                              country_var=country_vars))
+                                              country_var=country_vars,
+                                              colors_0=country_colors_0,
+                                              colors_1=country_colors_1,
+                                              colors_2=country_colors_2,
+                                              colors_plt=country_colors_0))
     return world_source
 
 
@@ -375,14 +453,32 @@ def plot_world_map(data_source, mode='web'):
     fig = Figure(plot_width=848, plot_height=480, title='2016世界各国空气污染物浓度示意图 (随机模拟数据)',
                  toolbar_location='above', tools=tools, logo=None, webgl=True)  # webgl=True: allows rendering via GPUs
     fig.patches('country_xs', 'country_ys',
-                fill_color='color', fill_alpha=0.7,
+                fill_color='colors_plt', fill_alpha=0.7,
                 line_color="white", line_width=0.5,
                 source=data_source)
 
+    # 添加可选择heat map颜色的widget
+    select_color = RadioGroup(labels=['配色方案: RdBu_r', '配色方案: PuBu', '配色方案: PuBuGn'], active=0)
+    callback = CustomJS(args=dict(source=data_source), code="""
+            var data = source.data;
+            var active = String(cb_obj.active);
+            var mapping = {
+                0: 'colors_0',
+                1: 'colors_1',
+                2: 'colors_2'
+            }
+            for (let i=0; i<data['country_name'].length; i++) {
+                data['colors_plt'][i] = data[mapping[active]][i]
+            }
+            source.trigger('change');
+        """)
+
+    select_color.js_on_change('active', callback)
+
     if mode == 'web':
-        return fig
+        return row(fig, select_color)
     if mode == 'local':
-        return fig
+        return row(fig, select_color)
 
 
 if __name__ == '__main__':
@@ -390,7 +486,6 @@ if __name__ == '__main__':
     import random
     import pandas as pd
     from bokeh.models.widgets import Panel, Tabs
-    from bokeh.layouts import column, row, layout, gridplot, WidgetBox
     from bokeh.io import output_file, show
 
     #######################################################################################################
@@ -453,11 +548,11 @@ if __name__ == '__main__':
     #######################################################################################################
 
     # 使用Panel和Tab:
-    tab1 = Panel(child=fig_cn, title='中国')
-    tab2 = Panel(child=fig_us_state, title='美国')
-    tab3 = Panel(child=fig_world, title='世界')
+    tab1 = Panel(child=fig_cn, title='中国地图')
+    tab2 = Panel(child=fig_us_state, title='美国地图')
+    tab3 = Panel(child=fig_world, title='世界地图')
 
-    tabs = Tabs(tabs=[tab1, tab2, tab3], width=960, height=540, active=0)
+    tabs = Tabs(tabs=[tab1, tab2, tab3], width=1050, height=540, active=0)
 
     output_file('example_heat_maps.html')
     show(tabs)
