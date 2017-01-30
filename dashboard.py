@@ -162,7 +162,7 @@ def stream():
     """
     ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
                                  #data_url='http://localhost:5000/data',
-                                 data_url='http://127.0.0.1:8080/data',
+                                 data_url='http://54.169.147.99/data',
                                  polling_interval=200, mode='append', max_size=500)
     fig_layout = make_streaming_plots(ajax_source, mode='web')
 
