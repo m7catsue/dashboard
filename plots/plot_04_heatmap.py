@@ -314,7 +314,7 @@ def plot_us_state_map(data_source, mode='web'):
     if mode not in ['web', 'local']:
         raise ValueError("Error: 'mode' parameter must be 'web' or 'local'!")
 
-    hover = HoverTool(tooltips=[('State', '@state_names'),
+    hover = HoverTool(tooltips=[('State', '@state_name'),
                                 ('Value', '@state_vars')],
                       point_policy='follow_mouse')
     tools = [PanTool(), WheelZoomTool(), BoxZoomTool(), TapTool(), hover, ResetTool()]
