@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 import os.path
 import sqlite3
-import redis
-import json
+import time
 import math
 import random
-import numpy as np
 
-from flask import Flask, session, g, render_template, jsonify, url_for
+from flask import Flask, g, render_template, jsonify, url_for
 from flask_bootstrap import Bootstrap
 from flask_caching import Cache
 
@@ -24,54 +22,29 @@ from decorators import crossdomain
 basedir = os.path.abspath(os.path.dirname(__file__))
 DATABASE = os.path.join(basedir, 'db_tmp.db')                       # database path
 
-redis_db = redis.StrictRedis(host="localhost", port=6379, db=0)     # create a global redis connection pool
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'm7catsue_evallery_indigo1990_secret_key'
 app.config['DEBUG'] = True
 bootstrap = Bootstrap(app)
+
 # 使用simple cache在windows环境下测试
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})
-#cache = Cache(app, config={
-    #'CACHE_TYPE': 'redis',                            # redis数据库需要Linux环境
-    #'CACHE_KEY_PREFIX': 'dashboard_cache',            # A prefix that is added before all keys, which makes it
-    #'CACHE_REDIS_HOST': 'localhost',                  # possible to use the same server for different apps.
-    #'CACHE_REDIS_PORT': '6379',
-    #'CACHE_REDIS_URL': 'redis://localhost:6379'
-#})
-
-
-#x = list(np.arange(0, 1, 0.1))                         # streaming模拟数据
-#y_sin = [math.sin(xi) for xi in x]
-#y_cos = [math.cos(xi) for xi in x]
-#y_random = [random.uniform(-1, 1) for i in range(10)]  # random.random()返回[0.0, 1.0)之间的浮点数
+# cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+cache = Cache(app, config={
+    'CACHE_TYPE': 'redis',                            # redis数据库需要Linux环境
+    'CACHE_KEY_PREFIX': 'dashboard_cache',            # A prefix that is added before all keys, which makes it
+    'CACHE_REDIS_HOST': 'localhost',                  # possible to use the same server for different apps.
+    'CACHE_REDIS_PORT': '6379',
+    'CACHE_REDIS_URL': 'redis://localhost:6379'
+})
 
 
 @app.before_request
 def before_request():
-    """在执行响应每个request之前:
-    (1)获得数据库连接(db=g._database);
-    (2)为浏览器设置临时id和streaming使用的初始数据;
-
+    """在执行响应每个request之前;获得数据库连接(db=g._database);
     [IMP] g是app context global,因为其在before_request()函数中设定,所有视图函数在执行时都会获得g"""
     db = getattr(g, '_database', None)
     if not db:
         g.database = sqlite3.connect(DATABASE)
-
-    if 'tmp_id' not in session:
-        from string import ascii_lowercase
-        tmp_id = ''.join(random.choice(ascii_lowercase) for i in range(12))
-        session['tmp_id'] = tmp_id
-
-        x = list(np.arange(0, 1, 0.1))
-        y_sin = [math.sin(xi) for xi in x]
-        y_cos = [math.cos(xi) for xi in x]
-        y_random = [random.uniform(-1, 1) for i in range(10)]
-
-        json_data = [x, y_sin, y_cos, y_random]
-        json_string = json.dumps(json_data)
-
-        redis_db.set(tmp_id, json_string)
 
 
 @app.teardown_appcontext
@@ -174,40 +147,37 @@ def heat_maps():
 #
 ####################################
 
+server_start = time.time()  # 服务器启动时间
 
-@app.route('/data/<tmp_id>', methods=['GET', 'OPTIONS', 'POST'])
+
+@app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
-def get_streaming_data(tmp_id):
-    """生成streaming的模拟数据"""
-    redis_db = redis.StrictRedis(host="localhost", port=6379, db=0)
+def get_streaming_data():
+    """生成streaming的模拟数据;
+    构造模拟数据仅依赖"时间",而不能依靠其他全局变量(尤其是mutable对象),因为:
+    (1)'/data'端节点模拟外部API,API请求应该保证"无状态"(stateless);
+    (2)当有web应用有多个worker进程时,进程a使用某个全局变量,此时若另一个用户进行request进程b也操作该全局变量,
+       这时由于进程b也对全局变量的操作,进程a和进程b同时在使用/修改全局变量,导致data corruption;
 
-    json_string = redis_db.get(tmp_id)
-    json_data = json.loads(json_string).decode('utf-8')
-    x, y_sin, y_cos, y_random = json_data[0], json_data[1], json_data[2], json_data[3]
-
-    x.append(x[-1] + 0.1)
-    y_sin.append(math.sin(x[-1]))
-    y_cos.append(math.cos(x[-1]))
-    y_random.append(random.uniform(-1, 1))
-
-    new_json_data = [x, y_sin, y_cos, y_random]
-    redis_db.set(tmp_id, json.dumps(new_json_data))
-
-    return jsonify(x=x[-1], y_sin=y_sin[-1], y_cos=y_cos[-1], y_random=y_random[-1])
+    [IMP] 模拟API数据源, 须保证"无状态"(参见REST API中的stateless特性),所有信息都包含在请求中;
+    [IMP] flask中的g,session等上下文全局变量无法通过Ajax请求(API请求)传递到本视图函数(即使这个endpoint隶属于dashboard站点)"""
+    x = (time.time() - server_start)
+    y_sin = math.sin(x)
+    y_cos = math.cos(x)
+    y_random = random.uniform(-1, 1)
+    return jsonify(x=x, y_sin=y_sin, y_cos=y_cos, y_random=y_random)
 
 
 @app.route('/stream')
-@cache.cached(timeout=120)
+@cache.cached(timeout=300)
 def stream():
     """对streaming的模拟数据进行实时的数据可视化;
 
     [IMP] 对data_url参数使用url_for()动态生成相应地址,而不使用直接的地址,
     因为在windows环境下测试时,data_url需为'localhost:5000/data', 而在在AWS服务器上部署时,则需将data_url修改为EC2实例的公网ip;
     使用url_for()函数可省略上述对data_url的更改"""
-    print(session['tmp_id'])
-    print(url_for('get_streaming_data', tmp_id=session['tmp_id']))
     ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
-                                 data_url=url_for('get_streaming_data', tmp_id=session['tmp_id']),
+                                 data_url=url_for('get_streaming_data'),
                                  polling_interval=200, mode='append', max_size=500)
     fig_layout = make_streaming_plots(ajax_source, mode='web')
 
