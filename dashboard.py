@@ -28,7 +28,8 @@ app.config['DEBUG'] = True
 bootstrap = Bootstrap(app)
 
 # 使用simple cache在windows环境下测试
-# cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+"""
 cache = Cache(app, config={
     'CACHE_TYPE': 'redis',                            # redis数据库需要Linux环境
     'CACHE_KEY_PREFIX': 'dashboard_cache',            # A prefix that is added before all keys, which makes it
@@ -36,7 +37,7 @@ cache = Cache(app, config={
     'CACHE_REDIS_PORT': '6379',
     'CACHE_REDIS_URL': 'redis://localhost:6379'
 })
-
+"""
 
 @app.before_request
 def before_request():
