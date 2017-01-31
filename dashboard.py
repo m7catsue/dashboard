@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os.path
 import sqlite3
-import redis
 import json
 import math
 import random
