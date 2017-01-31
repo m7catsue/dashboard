@@ -303,7 +303,7 @@ def make_us_state_data_source(var_dict, num_color_level=7, log_scale=False):
                                            colors_0=state_colors_0,
                                            colors_1=state_colors_1,
                                            colors_2=state_colors_2,
-                                           colors_plt=state_colors_1))
+                                           colors_plt=state_colors_0))
     return us_source
 
 
@@ -328,7 +328,7 @@ def plot_us_state_map(data_source, mode='web'):
                 source=data_source)
 
     # 添加可选择heat map颜色的widget
-    select_color = RadioGroup(labels=['配色方案: Reds', '配色方案: PuBu', '配色方案: PuBuGn'], active=1)
+    select_color = RadioGroup(labels=['配色方案: Reds', '配色方案: PuBu', '配色方案: PuBuGn'], active=0)
     callback = CustomJS(args=dict(source=data_source), code="""
             var data = source.data;
             var active = String(cb_obj.active);

@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 import os.path
 import sqlite3
+import redis
+import json
 import math
 import random
 import numpy as np
-from flask import Flask, g, render_template, jsonify
+
+from flask import Flask, current_app, session, g, render_template, jsonify
 from flask_bootstrap import Bootstrap
+from flask_caching import Cache
 
 from bokeh.models import AjaxDataSource
 from bokeh.embed import components
@@ -24,14 +28,22 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'm7catsue_evallery_indigo1990_secret_key'
 app.config['DEBUG'] = True
 bootstrap = Bootstrap(app)
+#cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+cache = Cache(app, config={'CACHE_TYPE': 'redis',
+                           'CACHE_KEY_PREFIX': 'fcache',
+                           'CACHE_REDIS_HOST': 'localhost',
+                           'CACHE_REDIS_PORT': '6379',
+                           'CACHE_REDIS_URL': 'redis://localhost:6379'})
 
 
-def get_db():
-    """获得数据库连接(db=g._database)"""
+
+@app.before_request
+def before_request():
+    """在执行响应每个request之前:获得数据库连接(db=g._database);
+    g是app context global,因为其在before_request()函数中设定,所有视图函数在执行时都会获得g"""
     db = getattr(g, '_database', None)
     if not db:
-        db = g._database = sqlite3.connect(DATABASE)
-    return db
+        g.database = sqlite3.connect(DATABASE)
 
 
 @app.teardown_appcontext
@@ -43,6 +55,7 @@ def close_db(exception):
 
 
 @app.route('/')
+@cache.cached(timeout=120)  # 保存页面缓存120秒
 def index():
     """Dashboard Demo首页"""
     return render_template('index.html')
@@ -57,10 +70,9 @@ def index():
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
-    """
-    Dashboard页面视图函数
-    """
-    db = get_db()                                   # get database connection
+    """Dashboard页面视图函数;
+    dashboard页面不使用cache:若使用,则在选择提交其他年份进行查询时,会返回同一年份的缓存页面 [IMP]"""
+    db = g.database                                 # get database connection
     form = YearSelectionForm()
     selected_year = form.year.data                  # get selected_year(string)
 
@@ -110,10 +122,9 @@ def dashboard():
 
 
 @app.route('/heat_maps')
+@cache.cached(timeout=120)  # 保存页面缓存120秒
 def heat_maps():
-    """
-    Dashboard Heat Maps页面的视图函数
-    """
+    """Heat Maps页面的视图函数"""
     from bokeh.models.widgets import Panel, Tabs
     source_cn = make_cn_data_source(make_var_dict_cn(), num_color_level=7, log_scale=False)
     source_us = make_us_state_data_source(make_var_dict_us_state(), num_color_level=7, log_scale=False)
@@ -136,18 +147,21 @@ def heat_maps():
 #
 ####################################
 
-x = list(np.arange(0, 1, 0.1))                         # streaming模拟数据
+x = list(np.arange(0, 1, 0.1))  # streaming模拟数据
 y_sin = [math.sin(xi) for xi in x]
 y_cos = [math.cos(xi) for xi in x]
 y_random = [random.uniform(-1, 1) for i in range(10)]  # random.random()返回[0.0, 1.0)之间的浮点数
+
+#session['x'] = list(np.arange(0, 1, 0.1))                         # streaming模拟数据
+#session['y_sin'] = [math.sin(xi) for xi in session['x']]
+#session['y_cos'] = [math.cos(xi) for xi in session['x']]
+#session['y_random'] = [random.uniform(-1, 1) for i in range(10)]  # random.random()返回[0.0, 1.0)之间的浮点数
 
 
 @app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def get_streaming_data():
-    """
-    生成streaming的模拟数据
-    """
+    """生成streaming的模拟数据"""
     x.append(x[-1] + 0.1)
     y_sin.append(math.sin(x[-1]))
     y_cos.append(math.cos(x[-1]))
@@ -156,21 +170,21 @@ def get_streaming_data():
 
 
 @app.route('/stream')
+@cache.cached(timeout=120)
 def stream():
-    """
-    对streaming的模拟数据进行实时的数据可视化
-    """
+    """对streaming的模拟数据进行实时的数据可视化;
+    若在AWS服务器上部署,则需将data_url作相应修改 [IMP]"""
     ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
-                                 #data_url='http://localhost:5000/data',
-                                 data_url='http://54.169.147.99/data',
+                                 data_url='http://localhost:5000/data',
+                                 #data_url='http://54.169.147.99/data',
                                  polling_interval=200, mode='append', max_size=500)
     fig_layout = make_streaming_plots(ajax_source, mode='web')
 
     script, div = components(fig_layout)
-    return render_template('stream.html',
-                           script_stream=script, div_stream=div)
+    return render_template('stream.html', script_stream=script, div_stream=div)
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(threaded=True)
+    #app.run(processes=3)
 
