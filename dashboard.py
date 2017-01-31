@@ -176,7 +176,7 @@ def stream():
     若在AWS服务器上部署,则需将data_url作相应修改 [IMP]"""
     ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
                                  #data_url='http://localhost:5000/data',
-                                 data_url=url_for('data'),
+                                 data_url=url_for('get_streaming_data'),
                                  polling_interval=200, mode='append', max_size=500)
     fig_layout = make_streaming_plots(ajax_source, mode='web')
 
