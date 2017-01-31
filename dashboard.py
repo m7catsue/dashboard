@@ -6,7 +6,7 @@ import math
 import random
 import numpy as np
 
-from flask import Flask, current_app, session, g, render_template, jsonify, url_for
+from flask import Flask, session, g, render_template, jsonify, url_for
 from flask_bootstrap import Bootstrap
 from flask_caching import Cache
 
@@ -30,21 +30,41 @@ bootstrap = Bootstrap(app)
 # 使用simple cache在windows环境下测试
 # cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 cache = Cache(app, config={
-    'CACHE_TYPE': 'redis',                            # redis需在Linux环境下运行
+    'CACHE_TYPE': 'redis',                            # redis数据库需要Linux环境
     'CACHE_KEY_PREFIX': 'dashboard_cache',            # A prefix that is added before all keys, which makes it
     'CACHE_REDIS_HOST': 'localhost',                  # possible to use the same server for different apps.
     'CACHE_REDIS_PORT': '6379',
     'CACHE_REDIS_URL': 'redis://localhost:6379'
 })
 
+#x = list(np.arange(0, 1, 0.1))                         # streaming模拟数据
+#y_sin = [math.sin(xi) for xi in x]
+#y_cos = [math.cos(xi) for xi in x]
+#y_random = [random.uniform(-1, 1) for i in range(10)]  # random.random()返回[0.0, 1.0)之间的浮点数
+
 
 @app.before_request
 def before_request():
-    """在执行响应每个request之前:获得数据库连接(db=g._database);
-    g是app context global,因为其在before_request()函数中设定,所有视图函数在执行时都会获得g"""
+    """在执行响应每个request之前:
+    (1)获得数据库连接(db=g._database);
+    (2)为浏览器设置临时id和streaming使用的初始数据;
+
+    [IMP] g是app context global,因为其在before_request()函数中设定,所有视图函数在执行时都会获得g"""
     db = getattr(g, '_database', None)
     if not db:
         g.database = sqlite3.connect(DATABASE)
+
+    if 'tmp_id' not in session:
+        from string import ascii_lowercase
+        tmp_id = ''.join(random.choice(ascii_lowercase) for i in range(4))
+        session['tmp_id'] = tmp_id
+
+        x = list(np.arange(0, 1, 0.1))
+        y_sin = [math.sin(xi) for xi in x]
+        y_cos = [math.cos(xi) for xi in x]
+        y_random = [random.uniform(-1, 1) for i in range(10)]
+
+        cache.set(tmp_id, [x, y_sin, y_cos, y_random])
 
 
 @app.teardown_appcontext
@@ -147,21 +167,15 @@ def heat_maps():
 #
 ####################################
 
-x = list(np.arange(0, 1, 0.1))                         # streaming模拟数据
-y_sin = [math.sin(xi) for xi in x]
-y_cos = [math.cos(xi) for xi in x]
-y_random = [random.uniform(-1, 1) for i in range(10)]  # random.random()返回[0.0, 1.0)之间的浮点数
 
-#session['x'] = list(np.arange(0, 1, 0.1))                         # streaming模拟数据
-#session['y_sin'] = [math.sin(xi) for xi in session['x']]
-#session['y_cos'] = [math.cos(xi) for xi in session['x']]
-#session['y_random'] = [random.uniform(-1, 1) for i in range(10)]  # random.random()返回[0.0, 1.0)之间的浮点数
-
-
-@app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
+@app.route('/data/<tmp_id>', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
-def get_streaming_data():
+def get_streaming_data(tmp_id):
     """生成streaming的模拟数据"""
+    json_string = cache.get(tmp_id)
+    json_data = json.loads(json_string).decode('utf-8')
+    x, y_sin, y_cos, y_random = json_data[0], json_data[1], json_data[2], json_data[3]
+    
     x.append(x[-1] + 0.1)
     y_sin.append(math.sin(x[-1]))
     y_cos.append(math.cos(x[-1]))
@@ -173,10 +187,12 @@ def get_streaming_data():
 @cache.cached(timeout=120)
 def stream():
     """对streaming的模拟数据进行实时的数据可视化;
-    若在AWS服务器上部署,则需将data_url作相应修改 [IMP]"""
+
+    [IMP] 对data_url参数使用url_for()动态生成相应地址,而不使用直接的地址,
+    因为在windows环境下测试时,data_url需为'localhost:5000/data', 而在在AWS服务器上部署时,则需将data_url修改为EC2实例的公网ip;
+    使用url_for()函数可省略上述对data_url的更改"""
     ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
-                                 #data_url='http://localhost:5000/data',
-                                 data_url=url_for('get_streaming_data'),
+                                 data_url=url_for('get_streaming_data', tmp_id=session['tmp_id']),
                                  polling_interval=200, mode='append', max_size=500)
     fig_layout = make_streaming_plots(ajax_source, mode='web')
 
