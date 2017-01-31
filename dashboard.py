@@ -60,13 +60,14 @@ def before_request():
 
     if 'tmp_id' not in session:
         from string import ascii_lowercase
-        tmp_id = ''.join(random.choice(ascii_lowercase) for i in range(4))
+        tmp_id = ''.join(random.choice(ascii_lowercase) for i in range(12))
         session['tmp_id'] = tmp_id
 
         x = list(np.arange(0, 1, 0.1))
         y_sin = [math.sin(xi) for xi in x]
         y_cos = [math.cos(xi) for xi in x]
         y_random = [random.uniform(-1, 1) for i in range(10)]
+
         json_data = [x, y_sin, y_cos, y_random]
         json_string = json.dumps(json_data)
 
@@ -178,6 +179,8 @@ def heat_maps():
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def get_streaming_data(tmp_id):
     """生成streaming的模拟数据"""
+    redis_db = redis.StrictRedis(host="localhost", port=6379, db=0)
+
     json_string = redis_db.get(tmp_id)
     json_data = json.loads(json_string).decode('utf-8')
     x, y_sin, y_cos, y_random = json_data[0], json_data[1], json_data[2], json_data[3]
