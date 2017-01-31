@@ -63,8 +63,10 @@ def before_request():
         y_sin = [math.sin(xi) for xi in x]
         y_cos = [math.cos(xi) for xi in x]
         y_random = [random.uniform(-1, 1) for i in range(10)]
+        json_data = [x, y_sin, y_cos, y_random]
+        json_string = json.dumps(json_data)
 
-        cache.set(tmp_id, [x, y_sin, y_cos, y_random])
+        cache.set(tmp_id, json_string)
 
 
 @app.teardown_appcontext
@@ -172,14 +174,22 @@ def heat_maps():
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def get_streaming_data(tmp_id):
     """生成streaming的模拟数据"""
-    json_string = cache.get(tmp_id)
+    import redis
+    r = redis.StrictRedis(host="localhost", port=6379, db=0)
+
+    json_string = r.get(tmp_id)
     json_data = json.loads(json_string).decode('utf-8')
     x, y_sin, y_cos, y_random = json_data[0], json_data[1], json_data[2], json_data[3]
-    
+
     x.append(x[-1] + 0.1)
     y_sin.append(math.sin(x[-1]))
     y_cos.append(math.cos(x[-1]))
     y_random.append(random.uniform(-1, 1))
+
+    new_json_data = [x, y_sin, y_cos, y_random]
+    new_json_string = json.dumps(new_json_data)
+    r.set(tmp_id, new_json_string)
+
     return jsonify(x=x[-1], y_sin=y_sin[-1], y_cos=y_cos[-1], y_random=y_random[-1])
 
 
@@ -191,6 +201,8 @@ def stream():
     [IMP] 对data_url参数使用url_for()动态生成相应地址,而不使用直接的地址,
     因为在windows环境下测试时,data_url需为'localhost:5000/data', 而在在AWS服务器上部署时,则需将data_url修改为EC2实例的公网ip;
     使用url_for()函数可省略上述对data_url的更改"""
+    print(session['tmp_id'])
+    print(url_for('get_streaming_data', tmp_id=session['tmp_id']))
     ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
                                  data_url=url_for('get_streaming_data', tmp_id=session['tmp_id']),
                                  polling_interval=200, mode='append', max_size=500)
