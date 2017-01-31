@@ -27,13 +27,15 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'm7catsue_evallery_indigo1990_secret_key'
 app.config['DEBUG'] = True
 bootstrap = Bootstrap(app)
-#cache = Cache(app, config={'CACHE_TYPE': 'simple'})
-cache = Cache(app, config={'CACHE_TYPE': 'redis',
-                           'CACHE_KEY_PREFIX': 'fcache',
-                           'CACHE_REDIS_HOST': 'localhost',
-                           'CACHE_REDIS_PORT': '6379',
-                           'CACHE_REDIS_URL': 'redis://localhost:6379'})
-
+# 使用simple cache在windows环境下测试
+# cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+cache = Cache(app, config={
+    'CACHE_TYPE': 'redis',                            # redis需在Linux环境下运行
+    'CACHE_KEY_PREFIX': 'dashboard_cache',            # A prefix that is added before all keys, which makes it
+    'CACHE_REDIS_HOST': 'localhost',                  # possible to use the same server for different apps.
+    'CACHE_REDIS_PORT': '6379',
+    'CACHE_REDIS_URL': 'redis://localhost:6379'
+})
 
 
 @app.before_request
@@ -54,7 +56,7 @@ def close_db(exception):
 
 
 @app.route('/')
-@cache.cached(timeout=120)  # 保存页面缓存120秒
+@cache.cached(timeout=300)  # 保存页面缓存5分钟(300秒)
 def index():
     """Dashboard Demo首页"""
     return render_template('index.html')
@@ -121,7 +123,7 @@ def dashboard():
 
 
 @app.route('/heat_maps')
-@cache.cached(timeout=120)  # 保存页面缓存120秒
+@cache.cached(timeout=600)  # 保存页面缓存10分钟;heat map页面均为静态bokeh documents
 def heat_maps():
     """Heat Maps页面的视图函数"""
     from bokeh.models.widgets import Panel, Tabs
@@ -136,8 +138,7 @@ def heat_maps():
     tabs = Tabs(tabs=[tab1, tab2, tab3], width=900, height=405, active=2)
 
     script_maps, div_maps = components(tabs)
-    return render_template('maps.html',
-                           script_maps=script_maps, div_maps=div_maps)
+    return render_template('maps.html', script_maps=script_maps, div_maps=div_maps)
 
 
 ####################################
@@ -146,7 +147,7 @@ def heat_maps():
 #
 ####################################
 
-x = list(np.arange(0, 1, 0.1))  # streaming模拟数据
+x = list(np.arange(0, 1, 0.1))                         # streaming模拟数据
 y_sin = [math.sin(xi) for xi in x]
 y_cos = [math.cos(xi) for xi in x]
 y_random = [random.uniform(-1, 1) for i in range(10)]  # random.random()返回[0.0, 1.0)之间的浮点数
@@ -174,8 +175,8 @@ def stream():
     """对streaming的模拟数据进行实时的数据可视化;
     若在AWS服务器上部署,则需将data_url作相应修改 [IMP]"""
     ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
-                                 data_url='http://localhost:5000/data',
-                                 #data_url='http://54.169.147.99/data',
+                                 #data_url='http://localhost:5000/data',
+                                 data_url='http://54.169.159.36/data',
                                  polling_interval=200, mode='append', max_size=500)
     fig_layout = make_streaming_plots(ajax_source, mode='web')
 
