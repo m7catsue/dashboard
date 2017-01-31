@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os.path
 import sqlite3
+import redis
 import json
 import math
 import random
@@ -21,21 +22,24 @@ from plots import make_line_plot, make_categorical, plot_cn_map, plot_us_state_m
 from decorators import crossdomain
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-DATABASE = os.path.join(basedir, 'db_tmp.db')
+DATABASE = os.path.join(basedir, 'db_tmp.db')                       # database path
+
+redis_db = redis.StrictRedis(host="localhost", port=6379, db=0)     # create a global redis connection pool
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'm7catsue_evallery_indigo1990_secret_key'
 app.config['DEBUG'] = True
 bootstrap = Bootstrap(app)
 # 使用simple cache在windows环境下测试
-# cache = Cache(app, config={'CACHE_TYPE': 'simple'})
-cache = Cache(app, config={
-    'CACHE_TYPE': 'redis',                            # redis数据库需要Linux环境
-    'CACHE_KEY_PREFIX': 'dashboard_cache',            # A prefix that is added before all keys, which makes it
-    'CACHE_REDIS_HOST': 'localhost',                  # possible to use the same server for different apps.
-    'CACHE_REDIS_PORT': '6379',
-    'CACHE_REDIS_URL': 'redis://localhost:6379'
-})
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+#cache = Cache(app, config={
+    #'CACHE_TYPE': 'redis',                            # redis数据库需要Linux环境
+    #'CACHE_KEY_PREFIX': 'dashboard_cache',            # A prefix that is added before all keys, which makes it
+    #'CACHE_REDIS_HOST': 'localhost',                  # possible to use the same server for different apps.
+    #'CACHE_REDIS_PORT': '6379',
+    #'CACHE_REDIS_URL': 'redis://localhost:6379'
+#})
+
 
 #x = list(np.arange(0, 1, 0.1))                         # streaming模拟数据
 #y_sin = [math.sin(xi) for xi in x]
@@ -66,7 +70,7 @@ def before_request():
         json_data = [x, y_sin, y_cos, y_random]
         json_string = json.dumps(json_data)
 
-        cache.set(tmp_id, json_string)
+        redis_db.set(tmp_id, json_string)
 
 
 @app.teardown_appcontext
@@ -174,10 +178,7 @@ def heat_maps():
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def get_streaming_data(tmp_id):
     """生成streaming的模拟数据"""
-    import redis
-    r = redis.StrictRedis(host="localhost", port=6379, db=0)
-
-    json_string = r.get(tmp_id)
+    json_string = redis_db.get(tmp_id)
     json_data = json.loads(json_string).decode('utf-8')
     x, y_sin, y_cos, y_random = json_data[0], json_data[1], json_data[2], json_data[3]
 
@@ -187,8 +188,7 @@ def get_streaming_data(tmp_id):
     y_random.append(random.uniform(-1, 1))
 
     new_json_data = [x, y_sin, y_cos, y_random]
-    new_json_string = json.dumps(new_json_data)
-    r.set(tmp_id, new_json_string)
+    redis_db.set(tmp_id, json.dumps(new_json_data))
 
     return jsonify(x=x[-1], y_sin=y_sin[-1], y_cos=y_cos[-1], y_random=y_random[-1])
 
