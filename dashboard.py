@@ -6,7 +6,7 @@ import time
 import math
 import random
 
-from flask import Flask, g, render_template, jsonify, url_for
+from flask import Flask, g, request, render_template, jsonify, redirect, url_for
 from flask_bootstrap import Bootstrap
 from flask_caching import Cache
 
@@ -56,10 +56,11 @@ def close_db(exception):
         db.close()
 
 
-@app.route('/')
-@cache.cached(timeout=300)  # 保存页面缓存5分钟(300秒)
+@app.route('/')             # [IMP] @cache.cached装饰器须位于@route装饰器和视图函数之间,
+@cache.cached(timeout=300)  # 否则缓存的将是@route装饰器的结果,而不是视图函数的结果
 def index():
     """Dashboard Demo首页"""
+    print(request.path)
     return render_template('index.html')
 
 
@@ -69,37 +70,24 @@ def index():
 #
 #############################
 
-
-@app.route('/dashboard', methods=['GET', 'POST'])
-def dashboard():
-    """Dashboard页面视图函数;
-    [IMP] dashboard页面不使用cache:若使用,则在选择提交其他年份进行查询时,会返回同一年份的缓存页面"""
-    db = g.database                                 # get database connection
+@app.route('/dashboard/<year>', methods=['GET', 'POST'])
+def dashboard(year):
+    """
+    Dashboard页面视图函数;
+    html模板中:从主页和导航栏重定向到dashboard页面将默认year初始值为2015;
+    """
+    db = g.database                                          # get database connection
     form = YearSelectionForm()
-    selected_year = form.year.data                  # get selected_year(string)
 
-    if form.validate_on_submit():
-        source_line = make_source_line(db, base_year=form.year.data)
-        source_cat1, source_cat2 = make_source_categorical(db, base_year=form.year.data)
-        source_matrix = make_source_matrix(db, base_year=form.year.data)
+    if form.validate_on_submit():                            # 用户通过表单新提交的年份:selected_year
+        selected_year = form.year.data
+        return redirect(url_for('dashboard', year=str(selected_year)))
 
-        line_layout = make_line_plot(source_line, mode='web')
-        categorical_layout = make_categorical(source_cat1, source_cat2, mode='web')
-        bar_matrix_layout = make_bar_matrix(source_matrix, mode='web')
-
-        script1, div1 = components(line_layout)
-        script2, div2 = components(categorical_layout)
-        script3, div3 = components(bar_matrix_layout)
-
-        return render_template('dashboard.html',
-                               form=form, year=selected_year,
-                               script1=script1, div1=div1,
-                               script2=script2, div2=div2,
-                               script3=script3, div3=div3)
-
-    source_line = make_source_line(db, base_year=form.year.data)
-    source_cat1, source_cat2 = make_source_categorical(db, base_year=form.year.data)
-    source_matrix = make_source_matrix(db, base_year=form.year.data)
+    form.year.data = str(year)                               # 将页面中form的选项设为request.path中的年份(用户的上一次选择),
+                                                             # 而不是form的默认选项'2015',使用户体验更具有一致性
+    source_line = make_source_line(db, base_year=year)       # request.path中的年份:year
+    source_cat1, source_cat2 = make_source_categorical(db, base_year=year)
+    source_matrix = make_source_matrix(db, base_year=year)
 
     line_layout = make_line_plot(source_line, mode='web')
     categorical_layout = make_categorical(source_cat1, source_cat2, mode='web')
@@ -110,7 +98,7 @@ def dashboard():
     script3, div3 = components(bar_matrix_layout)
 
     return render_template('dashboard.html',
-                           form=form, year=selected_year,
+                           form=form, year=year,
                            script1=script1, div1=div1,
                            script2=script2, div2=div2,
                            script3=script3, div3=div3)
@@ -122,11 +110,12 @@ def dashboard():
 #
 ##################################
 
-
 @app.route('/heat_maps')
-@cache.cached(timeout=300)  # 保存页面缓存5分钟;heat map页面均为静态bokeh documents
+@cache.cached(timeout=600)  # 保存页面缓存10分钟;heat map页面均为静态bokeh documents
 def heat_maps():
-    """Heat Maps页面的视图函数"""
+    """
+    Heat Maps页面的视图函数
+    """
     from bokeh.models.widgets import Panel, Tabs
     source_cn = make_cn_data_source(make_var_dict_cn(), num_color_level=7, log_scale=False)
     source_us = make_us_state_data_source(make_var_dict_us_state(), num_color_level=7, log_scale=False)
@@ -154,14 +143,16 @@ server_start = time.time()  # 服务器启动时间
 @app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def get_streaming_data():
-    """生成streaming的模拟数据;
+    """
+    生成streaming的模拟数据;
     构造模拟数据仅依赖"时间",而不能依靠其他全局变量(尤其是mutable对象),因为:
     (1)'/data'端节点模拟外部API,API请求应该保证"无状态"(stateless);
     (2)当有web应用有多个worker进程时,进程a使用某个全局变量,此时若另一个用户进行request进程b也操作该全局变量,
        这时由于进程b也对全局变量的操作,进程a和进程b同时在使用/修改全局变量,导致data corruption;
 
     [IMP] 模拟API数据源, 须保证"无状态"(参见REST API中的stateless特性),所有信息都包含在请求中;
-    [IMP] flask中的g,session等上下文全局变量无法通过Ajax请求(API请求)传递到本视图函数(即使这个endpoint隶属于dashboard站点)"""
+    [IMP] flask中的g,session等上下文全局变量无法通过Ajax请求(API请求)传递到本视图函数(即使这个endpoint隶属于dashboard站点)
+    """
     x = (time.time() - server_start)
     y_sin = math.sin(x)
     y_cos = math.cos(x)
@@ -172,11 +163,13 @@ def get_streaming_data():
 @app.route('/stream')
 @cache.cached(timeout=300)  # streaming页面可以cache因为AjaxDataSource每次初始为空
 def stream():
-    """对streaming的模拟数据进行实时的数据可视化;
+    """
+    对streaming的模拟数据进行实时的数据可视化;
 
     [IMP] 对data_url参数使用url_for()动态生成相应地址,而不使用直接的地址,
     因为在windows环境下测试时,data_url需为'localhost:5000/data', 而在在AWS服务器上部署时,则需将data_url修改为EC2实例的公网ip;
-    使用url_for()函数可省略上述对data_url的更改"""
+    使用url_for()函数可省略上述对data_url的更改
+    """
     ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
                                  data_url=url_for('get_streaming_data'),
                                  polling_interval=200, mode='append', max_size=500)
