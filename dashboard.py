@@ -74,7 +74,7 @@ def index():
 def dashboard(year):
     """
     Dashboard页面视图函数;
-    html模板中:从主页和导航栏重定向到dashboard页面将默认year初始值为2015;
+    html模板中:从主页和导航栏重定向到dashboard页面将默认year初始值为2015
     """
     db = g.database                                          # get database connection
     form = YearSelectionForm()
