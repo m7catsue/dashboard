@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 import os.path
 import sqlite3
 import time
@@ -20,22 +21,22 @@ from plots import make_line_plot, make_categorical, plot_cn_map, plot_us_state_m
 from decorators import crossdomain
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-DATABASE = os.path.join(basedir, 'db_tmp.db')                       # database path
+DATABASE = os.path.join(basedir, 'db_tmp.db')                # database path
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'm7catsue_evallery_indigo1990_secret_key'
 app.config['DEBUG'] = True
-bootstrap = Bootstrap(app)
+if sys.platform == 'win32':                                  # 使用simple cache在windows环境下测试
+    app.config['CACHE_TYPE'] = 'simple'
+if sys.platform == 'linux':                                  # redis数据库需要Linux环境
+    app.config['CACHE_TYPE'] = 'redis'
+    app.config['CACHE_KEY_PREFIX'] = 'dashboard_cache'       # A prefix that is added before all keys, which makes it
+    app.config['CACHE_REDIS_HOST'] = 'localhost'             # possible to use the same server for different apps.
+    app.config['CACHE_REDIS_PORT'] = '6379'
+    app.config['CACHE_REDIS_URL'] = 'redis://localhost:6379'
 
-# 使用simple cache在windows环境下测试
-# cache = Cache(app, config={'CACHE_TYPE': 'simple'})
-cache = Cache(app, config={
-    'CACHE_TYPE': 'redis',                            # redis数据库需要Linux环境
-    'CACHE_KEY_PREFIX': 'dashboard_cache',            # A prefix that is added before all keys, which makes it
-    'CACHE_REDIS_HOST': 'localhost',                  # possible to use the same server for different apps.
-    'CACHE_REDIS_PORT': '6379',
-    'CACHE_REDIS_URL': 'redis://localhost:6379'
-})
+bootstrap = Bootstrap(app)
+cache = Cache(app)  # [IMP] 需要在生成Cache实例前对其参数进行设置(app.config);或者生成cache实例时传入参数config={dict}
 
 
 @app.before_request
@@ -72,7 +73,7 @@ def index():
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     """Dashboard页面视图函数;
-    dashboard页面不使用cache:若使用,则在选择提交其他年份进行查询时,会返回同一年份的缓存页面 [IMP]"""
+    [IMP] dashboard页面不使用cache:若使用,则在选择提交其他年份进行查询时,会返回同一年份的缓存页面"""
     db = g.database                                 # get database connection
     form = YearSelectionForm()
     selected_year = form.year.data                  # get selected_year(string)
@@ -123,7 +124,7 @@ def dashboard():
 
 
 @app.route('/heat_maps')
-@cache.cached(timeout=600)  # 保存页面缓存10分钟;heat map页面均为静态bokeh documents
+@cache.cached(timeout=300)  # 保存页面缓存5分钟;heat map页面均为静态bokeh documents
 def heat_maps():
     """Heat Maps页面的视图函数"""
     from bokeh.models.widgets import Panel, Tabs
@@ -169,7 +170,7 @@ def get_streaming_data():
 
 
 @app.route('/stream')
-@cache.cached(timeout=300)
+@cache.cached(timeout=300)  # streaming页面可以cache因为AjaxDataSource每次初始为空
 def stream():
     """对streaming的模拟数据进行实时的数据可视化;
 
@@ -186,6 +187,6 @@ def stream():
 
 
 if __name__ == '__main__':
-    app.run(threaded=True)
-    #app.run(processes=3)
+    app.threaded = True
+    app.run()
 
