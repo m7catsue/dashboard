@@ -6,7 +6,7 @@ import time
 import math
 import random
 
-from flask import Flask, g, request, render_template, jsonify, redirect, url_for
+from flask import Flask, g, render_template, jsonify, redirect, url_for
 from flask_bootstrap import Bootstrap
 from flask_caching import Cache
 
@@ -60,7 +60,6 @@ def close_db(exception):
 @cache.cached(timeout=300)  # 否则缓存的将是@route装饰器的结果,而不是视图函数的结果
 def index():
     """Dashboard Demo首页"""
-    print(request.path)
     return render_template('index.html')
 
 
@@ -69,6 +68,7 @@ def index():
 # (1) Dashboard
 #
 #############################
+
 
 @app.route('/dashboard/<year>', methods=['GET', 'POST'])
 def dashboard(year):
@@ -151,7 +151,10 @@ def get_streaming_data():
        这时由于进程b也对全局变量的操作,进程a和进程b同时在使用/修改全局变量,导致data corruption;
 
     [IMP] 模拟API数据源, 须保证"无状态"(参见REST API中的stateless特性),所有信息都包含在请求中;
-    [IMP] flask中的g,session等上下文全局变量无法通过Ajax请求(API请求)传递到本视图函数(即使这个endpoint隶属于dashboard站点)
+    [IMP] flask中的g,session等上下文全局变量无法通过Ajax请求(API请求)传递到本视图函数(即使这个endpoint隶属于dashboard站点);
+
+    [INFO] 在dashboard demo中get_streaming_data()视图函数是 procedurally generate模拟数据,
+           也可以将get_streaming_data()更改为(1)查询数据库并返回结果,(2)进行外部API请求并返回解析后的结果
     """
     x = (time.time() - server_start)
     y_sin = math.sin(x)
