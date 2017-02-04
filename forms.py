@@ -13,7 +13,7 @@ class YearSelectionForm(FlaskForm):
 
 class AqiQueryForm(FlaskForm):
     """导航栏中进行AQI实时查询的表单"""
-    city = SelectField('Select City:',
+    city = SelectField('',
                        choices=[('beijing', '北京'), ('chengdu', '成都'), ('chongqing', '重庆'),
                                 ('guangzhou', '广州'), ('shanghai', '上海'), ('shenyang', '沈阳')],
                        default='chengdu')

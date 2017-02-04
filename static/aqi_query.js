@@ -1,3 +1,15 @@
+var dialog = $( "#dialog" );                          //JQueryUI弹窗,用于展示AQI查询结果
+
+$(function () {
+  $( "#dialog" ).dialog({
+    autoOpen: false
+  });
+
+  $("#submit").click(function() {
+    $("#dialog").dialog('open');
+  });
+});
+
 var mapping = {
     'beijing': '北京',
     'chengdu': '成都',
@@ -36,7 +48,6 @@ function aqiQuery() {
         console.log(status);
         if (status==='ok') {
             var aqi_value = data.data.aqi;
-            console.log(typeof(aqi_value));
             var aqi_level = getAqiLevel(aqi_value);
             var updated_time = data.data.time.s;
             alert('城市: ' + mapping[selected_city] + ', 空气质量指数(AQI): ' + aqi_value + ', 空气质量等级: ' + aqi_level +
@@ -52,6 +63,7 @@ function aqiQuery() {
               '该数据每小时更新。');
     });
 }
+
 
 
 

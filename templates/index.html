@@ -10,13 +10,15 @@
     <link href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.4.min.css" rel="stylesheet" type="text/css">
     <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.4.min.js"></script>
     <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.4.min.js"></script>
-
+    <!-- 加载JQuery和自定义JS/CSS资源 -->
+    <!-- 须在加载其他自定义JS文件之间加载JQuery [IMP] -->
     <link rel="shortcut icon" href="{{ url_for('static', filename='python.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ url_for('static', filename='python.ico') }}" type="image/x-icon">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <!-- 加载JQuery和自定义JS文件 -->
-    <script src="{{ url_for('static', filename='aqi_query.js') }}"></script>
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="{{ url_for('static', filename='aqi_query.js') }}"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 {% endblock %}
 
 {% block navbar %}
@@ -48,7 +50,8 @@
                         <div id="aqi-query">
                             <form class="navbar-form">
                                 {{ wtf.form_field(aqi_form.city, id='selected-city') }}
-                                <button type="button" class="btn btn btn-success" onclick="aqiQuery()">查询实时空气质量指数(AQI)</button>
+                                <button type="button" class="btn btn btn-success" id="submit"
+                                        onclick="aqiQuery()">查询实时空气质量指数(AQI)</button>
                             </form>
                         </div>
                     </li>
@@ -59,6 +62,10 @@
 {% endblock %}
 
 {% block content %}
+    <div id="dialog" title="Basic dialog">
+        <p>This is an animated dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.</p>
+    </div>
+
     <div class="jumbotron">
         <div class="container">
             <h1>Dashboard Demo</h1>

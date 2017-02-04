@@ -83,3 +83,10 @@ div#heat-map .bk-widget-box.bk-layout-fixed {
 div#heat-map .bk-plot-layout.bk-layout-fixed {
     margin-right: 10px;
 }
+
+#dialog {
+    /*JQueryUI的弹窗,用于呈现AQI查询的结果*/
+    display: none;
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+}
