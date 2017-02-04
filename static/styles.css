@@ -1,7 +1,32 @@
-/*消除首页中黑色的nav_bar和灰色的jumbotron之间的长条白色空白*/
 div.navbar {
-    margin-bottom: 0px;
+    margin-bottom: 0px;  /*消除首页中黑色的nav_bar和灰色的jumbotron之间的长条白色空白*/
+    height: 50px;        /*在导航栏class中添加'navbar-fixed-top'之后,设定导航栏高度*/
 }
+.navbar-brand {
+    /*调整导航栏中glyphicon"Home"与导航栏中其他项目的对齐,
+    padding-top: 13px; padding-bottom: 17px;*/
+    float: left;
+    height: 50px;
+    padding-top: 13px;
+    padding-bottom: 17px;
+    padding-left: 15px;
+    padding-right: 15px;
+    font-size: 18px;
+    line-height: 20px;
+}
+div#content-container {
+    /*调整导航栏与container div之间的空白间距;
+    在导航栏class中添加'navbar-fixed-top'之后,导航栏与container div会重叠;
+    适用于dashboard, heat maps, streaming页面;content-container div在base.html中定义;*/
+    margin-top: 50px;
+}
+div.jumbotron {
+    /*调整导航栏与jumbotron div之间的空白间距;
+    在导航栏class中添加'navbar-fixed-top'之后,导航栏与jumbotron div会重叠/间距变小*/
+    margin-top: 45px;
+}
+
+
 div.container-fluid {
     margin-top: 0px;
     margin-bottom: 0px;
@@ -30,18 +55,8 @@ div.bk-plot-wrapper {
     padding-right: 5px;
     vertical-align: middle;
 }
-.navbar-brand {
-    /*调整导航栏中glyphicon"Home"与导航栏中其他项目的对齐,
-    padding-top: 13px; padding-bottom: 17px;*/
-    float: left;
-    height: 50px;
-    padding-top: 13px;
-    padding-bottom: 17px;
-    padding-left: 15px;
-    padding-right: 15px;
-    font-size: 18px;
-    line-height: 20px;
-}
+
+
 /*通过CSS类的继承来调整"streaming"页面的实时分析widget(div)的font-size和font-family*/
 .bk-root {
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;

@@ -29,9 +29,7 @@
         </p>
         <br>
         <p><i><b>请选择PM2.5数据的年份</b> (数据来源：<a href="http://www.stateair.net/web/post/1/1.html">http://www.stateair.net</a>)</i>
-            {{ wtf.quick_form(form, form_type='inline',
-                              horizontal_columns=('md', 6, 6),
-                              button_map={'submit': 'btn btn-primary btn-md'}) }}
+            {{ wtf.quick_form(form, form_type='inline', button_map={'submit': 'btn btn-primary btn-md'}) }}
         </p>
     </div>
 

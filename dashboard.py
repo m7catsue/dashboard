@@ -13,7 +13,7 @@ from flask_caching import Cache
 from bokeh.models import AjaxDataSource
 from bokeh.embed import components
 
-from forms import YearSelectionForm
+from forms import YearSelectionForm, AqiQueryForm
 from sources import make_source_line, make_source_categorical, make_var_dict_cn, make_var_dict_us_state, \
     make_var_dict_world, make_cn_data_source, make_us_state_data_source, make_world_data_source, make_source_matrix
 from plots import make_line_plot, make_categorical, plot_cn_map, plot_us_state_map, plot_world_map, \
@@ -60,7 +60,8 @@ def close_db(exception):
 @cache.cached(timeout=300)  # 否则缓存的将是@route装饰器的结果,而不是视图函数的结果
 def index():
     """Dashboard Demo首页"""
-    return render_template('index.html')
+    aqi_form = AqiQueryForm()                                # 导航栏AQI实时查询表单
+    return render_template('index.html', aqi_form=aqi_form)
 
 
 #############################
@@ -77,6 +78,7 @@ def dashboard(year):
     html模板中:从主页和导航栏重定向到dashboard页面将默认year初始值为2015
     """
     db = g.database                                          # get database connection
+    aqi_form = AqiQueryForm()                                # 导航栏AQI实时查询表单
     form = YearSelectionForm()
 
     if form.validate_on_submit():                            # 用户通过表单新提交的年份:selected_year
@@ -97,7 +99,7 @@ def dashboard(year):
     script2, div2 = components(categorical_layout)
     script3, div3 = components(bar_matrix_layout)
 
-    return render_template('dashboard.html',
+    return render_template('dashboard.html', aqi_form=aqi_form,
                            form=form, year=year,
                            script1=script1, div1=div1,
                            script2=script2, div2=div2,
@@ -116,6 +118,7 @@ def heat_maps():
     """
     Heat Maps页面的视图函数
     """
+    aqi_form = AqiQueryForm()                                 # 导航栏AQI实时查询表单
     from bokeh.models.widgets import Panel, Tabs
     source_cn = make_cn_data_source(make_var_dict_cn(), num_color_level=7, log_scale=False)
     source_us = make_us_state_data_source(make_var_dict_us_state(), num_color_level=7, log_scale=False)
@@ -128,7 +131,8 @@ def heat_maps():
     tabs = Tabs(tabs=[tab1, tab2, tab3], width=900, height=405, active=2)
 
     script_maps, div_maps = components(tabs)
-    return render_template('maps.html', script_maps=script_maps, div_maps=div_maps)
+    return render_template('maps.html', aqi_form=aqi_form,
+                           script_maps=script_maps, div_maps=div_maps)
 
 
 ####################################
@@ -140,6 +144,9 @@ def heat_maps():
 server_start = time.time()  # 服务器启动时间
 
 
+# 对于PUT、DELETE以及其他类型如application/json的POST请求，在发送AJAX请求之前，浏览器会先发送一个OPTIONS请求（称为preflighted请求）到这个URL上，询问目标服务器是否接受;
+# 服务器必须响应并明确指出允许的Method;浏览器确认服务器响应的Access-Control-Allow-Methods头确实包含将要发送的AJAX请求的Method，才会继续发送AJAX，否则，抛出一个错误.
+# http://www.liaoxuefeng.com/wiki/001434446689867b27157e896e74d51a89c25cc8b43bdb3000/001434499861493e7c35be5e0864769a2c06afb4754acc6000
 @app.route('/data', methods=['GET', 'OPTIONS', 'POST'])
 @crossdomain(origin="*", methods=['GET', 'POST'], headers=None)
 def get_streaming_data():
@@ -147,7 +154,7 @@ def get_streaming_data():
     生成streaming的模拟数据;
     构造模拟数据仅依赖"时间",而不能依靠其他全局变量(尤其是mutable对象),因为:
     (1)'/data'端节点模拟外部API,API请求应该保证"无状态"(stateless);
-    (2)当有web应用有多个worker进程时,进程a使用某个全局变量,此时若另一个用户进行request进程b也操作该全局变量,
+    (2)当有web应用有多个worker进程时,进程a使用某个全局变量,此时若另一个用户进行request则进程b也操作该全局变量,
        这时由于进程b也对全局变量的操作,进程a和进程b同时在使用/修改全局变量,导致data corruption;
 
     [IMP] 模拟API数据源, 须保证"无状态"(参见REST API中的stateless特性),所有信息都包含在请求中;
@@ -173,13 +180,15 @@ def stream():
     因为在windows环境下测试时,data_url需为'localhost:5000/data', 而在在AWS服务器上部署时,则需将data_url修改为EC2实例的公网ip;
     使用url_for()函数可省略上述对data_url的更改
     """
+    aqi_form = AqiQueryForm()                                 # 导航栏AQI实时查询表单
     ajax_source = AjaxDataSource(data=dict(x=[], y_sin=[], y_cos=[], y_random=[]),
                                  data_url=url_for('get_streaming_data'),
                                  polling_interval=200, mode='append', max_size=500)
     fig_layout = make_streaming_plots(ajax_source, mode='web')
 
     script, div = components(fig_layout)
-    return render_template('stream.html', script_stream=script, div_stream=div)
+    return render_template('stream.html', aqi_form=aqi_form,
+                           script_stream=script, div_stream=div)
 
 
 if __name__ == '__main__':

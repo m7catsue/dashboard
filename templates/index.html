@@ -1,4 +1,5 @@
 {% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 
 {% block title %}Welcome to Dashboard Demo{% endblock %}
 
@@ -13,10 +14,13 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='python.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ url_for('static', filename='python.ico') }}" type="image/x-icon">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- 加载JQuery和自定义JS文件 -->
+    <script src="{{ url_for('static', filename='aqi_query.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 {% endblock %}
 
 {% block navbar %}
-    <div class="navbar navbar-inverse" role="navigation">
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
         <div class="container">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -32,10 +36,22 @@
                 </a>
             </div>
             <div class="navbar-collapse collapse">
+                <!-- 从左起的导航栏项目 -->
                 <ul class="nav navbar-nav">
                     <li><a href="{{ url_for('dashboard', year='2015') }}">Dashboard</a></li>
                     <li><a href="{{ url_for('heat_maps') }}">Heat Maps</a></li>
                     <li><a href="{{ url_for('stream') }}">Streaming</a></li>
+                </ul>
+                 <!-- 从右起的导航栏项目 -->
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <div id="aqi-query">
+                            <form class="navbar-form">
+                                {{ wtf.form_field(aqi_form.city, id='selected-city') }}
+                                <button type="button" class="btn btn btn-success" onclick="aqiQuery()">查询实时空气质量指数(AQI)</button>
+                            </form>
+                        </div>
+                    </li>
                 </ul>
             </div>
         </div>
