@@ -84,6 +84,9 @@ div#heat-map .bk-plot-layout.bk-layout-fixed {
     margin-right: 10px;
 }
 
+div#dialog {
+    display: none;
+}
 .ui-dialog {
     /*将JQueryUI dialog弹窗设置为always on top*/
     z-index: 1000 !important;
