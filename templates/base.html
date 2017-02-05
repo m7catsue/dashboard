@@ -15,7 +15,7 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='python.ico') }}" type="image/x-icon">
     <link rel="icon" href="{{ url_for('static', filename='python.ico') }}" type="image/x-icon">
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="{{ url_for('static', filename='aqi_query.js') }}"></script>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
@@ -50,7 +50,7 @@
                         <div id="aqi-query">
                             <form class="navbar-form">
                                 {{ wtf.form_field(aqi_form.city, id='selected-city') }}
-                                <button type="button" class="btn btn btn-success" onclick="aqiQuery()">查询实时空气质量指数(AQI)</button>
+                                <button type="button" class="btn btn btn-success" id="submit">查询实时空气质量指数(AQI)</button>
                             </form>
                         </div>
                     </li>
@@ -71,6 +71,11 @@
         </div>
         {% endfor %}
 
+        <!-- dialog窗口默认隐藏 -->
+        <div id="dialog" title="AQI实时查询结果">
+            <p>AQI查询结果：目前没有返回的结果，正在查询...</p>
+        </div>
+        <!-- 页面内容 -->
         {% block page_content %}{% endblock %}
 
     <hr>        <!-- 增加一条水平分隔线 -->
