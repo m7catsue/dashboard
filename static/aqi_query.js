@@ -28,7 +28,7 @@ jQuery(document).ready(function($) {
     }
 
     $(function () {
-      $( "#dialog" ).dialog({                        //初始化dialog;设置相关属性
+      $( "#dialog" ).dialog({                        //初始化dialog;设置dialog相关属性
         autoOpen: false,
         width: 400,
         height: 150,
